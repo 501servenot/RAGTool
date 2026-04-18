@@ -5,10 +5,8 @@ python-dotenv
 pydantic
 pydantic-settings
 pypdf
-langchain
 langchain-core
 langchain-community
 langchain-chroma
 langchain-text-splitters
-langchain_openai
 dashscope
