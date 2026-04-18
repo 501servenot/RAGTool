@@ -7,6 +7,10 @@
 - `storage/`：运行时数据目录（知识库、聊天历史、md5 索引）
 - `scripts/`：初始化和启动脚手架
 
+## 项目界面预览
+
+![RAG Console 界面预览](docs/images/rag-console-preview.png)
+
 ## RAG 架构概览
 
 这个项目的 RAG 框架可以概括为：
