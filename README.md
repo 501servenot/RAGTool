@@ -1,6 +1,7 @@
 # RAGTool
 
 > 提示：当前项目默认使用阿里云百炼平台的 API（如 DashScope / 通义相关能力）。后续会逐步兼容其他第三方模型与 API 服务。
+请访问[阿里云百炼平台](https://bailian.console.aliyun.com/cn)获取DASHSCOPE_API_KEY
 
 这一个前后端分离的 RAG 示例项目：
 
@@ -40,10 +41,15 @@
 flowchart TD
     user[用户提问] --> webUi[Web 前端]
     webUi --> chatApi[FastAPI Chat API]
-    chatApi --> rewriteQuery[Query Rewrite]
-    rewriteQuery --> retrieveDocs[Chroma TopK 检索]
+    chatApi --> retrieveDocs[原始问题 Chroma TopK 检索]
     retrieveDocs --> rerankDocs[Rerank 重排]
-    rerankDocs --> expandContext[补充命中 Chunk 前后文]
+    rerankDocs --> qualityGate{检索评分是否足够高?}
+    qualityGate -->|是| expandContext[补充命中 Chunk 前后文]
+    qualityGate -->|否| rewriteQuery[结合历史做 Query Rewrite]
+    rewriteQuery --> retrieveDocsRewritten[改写后再次检索]
+    retrieveDocsRewritten --> rerankDocsRewritten[再次 Rerank]
+    rerankDocsRewritten --> compareResults[比较原始结果与改写结果]
+    compareResults --> expandContext
     expandContext --> promptBuilder[组装 Prompt 与历史消息]
     promptBuilder --> llmAnswer[通义聊天模型生成回答]
     llmAnswer --> streamResponse[流式或非流式返回]
@@ -68,13 +74,16 @@ flowchart TD
 
 ### 查询链路
 
-用户发起提问后，后端会先结合最近会话历史做 Query Rewrite，把原始问题改写成更适合知识库检索的问题。然后进入检索与生成链路：
+用户发起提问后，后端会优先使用原始问题进入检索链路，而不是默认先 rewrite。整体流程如下：
 
-1. 用改写后的问题做向量召回
-2. 对召回结果做 rerank
-3. 对最终命中的 chunk 补齐前后相邻 chunk
-4. 把整理后的上下文连同历史消息一起送给聊天模型
-5. 返回最终回答
+1. 先用原始问题做向量召回
+2. 对召回结果做 rerank，并根据 `rerank_score` 判断结果质量
+3. 如果分数足够高，直接使用当前结果
+4. 如果分数不高，再结合最近会话历史做 Query Rewrite，并重新检索与 rerank
+5. 比较原始检索结果和 rewrite 后结果，选择更优的一组
+6. 对最终命中的 chunk 补齐前后相邻 chunk
+7. 把整理后的上下文连同历史消息一起送给聊天模型
+8. 返回最终回答
 
 这里有一个很重要的设计点：
 
@@ -97,7 +106,7 @@ flowchart TD
 这个项目的回答链路可以简化理解为：
 
 ```text
-用户问题 -> 改写 -> 检索 -> 重排 -> 补上下文 -> 生成答案
+用户问题 -> 检索 -> 重排 -> 低分时改写重检 -> 补上下文 -> 生成答案
 ```
 
 ## 目录结构

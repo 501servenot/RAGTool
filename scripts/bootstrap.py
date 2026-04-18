@@ -72,7 +72,7 @@ def main() -> None:
     install_frontend_dependencies()
     print("\n初始化完成。")
     print("下一步：")
-    print("1. 编辑根目录 .env，填入 DASHSCOPE_API_KEY 等配置")
+    print("1. 编辑根目录 .env，填入 DASHSCOPE_API_KEY 等配置，可以访问https://bailian.console.aliyun.com/cn获取DASHSCOPE_API_KEY")
     print(f"2. 运行 `{current_python()} scripts/dev.py` 启动前后端")
 
 
