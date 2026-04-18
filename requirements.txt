@@ -12,4 +12,3 @@ langchain-chroma
 langchain-text-splitters
 langchain_openai
 dashscope
-streamlit
