@@ -1,0 +1,128 @@
+:root {
+  --background: #08090a;
+  --background-elevated: #0f1011;
+  --surface: rgba(255, 255, 255, 0.025);
+  --surface-elevated: rgba(255, 255, 255, 0.045);
+  --surface-hover: rgba(255, 255, 255, 0.055);
+  --surface-strong: #191a1b;
+  --foreground: #f7f8f8;
+  --foreground-soft: #d0d6e0;
+  --muted-foreground: #8a8f98;
+  --subtle-foreground: #62666d;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --accent: #7170ff;
+  --accent-solid: #5e6ad2;
+  --accent-hover: #828fff;
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.12);
+  --success: #27a644;
+  --success-soft: rgba(39, 166, 68, 0.14);
+  --warning: #d4a72c;
+  --warning-soft: rgba(212, 167, 44, 0.14);
+  --shadow-panel:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 24px 60px rgba(0, 0, 0, 0.35);
+  --shadow-dialog:
+    0 8px 24px rgba(0, 0, 0, 0.28),
+    0 2px 6px rgba(0, 0, 0, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  --font-body:
+    'Inter Variable', 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Segoe UI', sans-serif;
+  --font-display:
+    'Inter Variable', 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Segoe UI', sans-serif;
+  --font-mono: 'Berkeley Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  color-scheme: dark;
+  font-family: var(--font-body);
+  font-synthesis: none;
+  font-feature-settings: 'cv01', 'ss03';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100svh;
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at top left, rgba(113, 112, 255, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(94, 106, 210, 0.08), transparent 22%),
+    linear-gradient(180deg, #090a0b 0%, var(--background) 100%);
+}
+
+body,
+button,
+textarea,
+input {
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-weight: 510;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+textarea,
+input {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(113, 112, 255, 0.28);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+  background-clip: padding-box;
+}
