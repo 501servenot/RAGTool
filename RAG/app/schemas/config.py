@@ -4,13 +4,13 @@ from pydantic import BaseModel, Field
 
 
 ConfigValue = Any
+ProviderKind = Literal["openai_compatible", "dashscope"]
 ConfigInputType = Literal[
     "text",
     "password",
     "number",
     "checkbox",
     "json-textarea",
-    "json-object",
 ]
 
 
@@ -28,12 +28,28 @@ class ConfigFieldSchema(BaseModel):
 
 class ConfigStateResponse(BaseModel):
     fields: list[ConfigFieldSchema] = Field(..., description="配置字段定义和当前值")
+    model_configs: dict[str, "EditableModelConfig"] = Field(
+        ..., description="结构化模型配置"
+    )
+
+
+class EditableModelConfig(BaseModel):
+    provider_kind: ProviderKind = Field(..., description="模型 provider 类型")
+    model: str = Field(..., description="模型名称")
+    base_url: str = Field("", description="模型接口 URL")
+    api_key: str = Field("", description="模型接口密钥")
 
 
 class ConfigUpdateRequest(BaseModel):
     values: dict[str, Any] = Field(default_factory=dict, description="要更新的配置值")
+    model_configs: dict[str, EditableModelConfig] = Field(
+        default_factory=dict, description="结构化模型配置"
+    )
 
 
 class ConfigUpdateResponse(BaseModel):
     message: str = Field(..., description="更新结果")
     fields: list[ConfigFieldSchema] = Field(..., description="刷新后的配置字段")
+    model_configs: dict[str, EditableModelConfig] = Field(
+        ..., description="刷新后的结构化模型配置"
+    )

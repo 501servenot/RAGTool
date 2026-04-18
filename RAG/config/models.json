@@ -1,36 +1,49 @@
 {
   "providers": {
-    "default_dashscope": {
+    "chat_provider": {
+      "kind": "openai_compatible",
+      "base_url": "https://api.deepseek.com",
+      "api_key": "sk-494903e12d3147dbaecd6e83d8b9ce80"
+    },
+    "rewrite_provider": {
       "kind": "dashscope",
-      "api_key": "${DASHSCOPE_API_KEY}"
+      "api_key": "sk-aac3f9bfa7854c23b6e0619f9b52ffcf"
+    },
+    "embedding_provider": {
+      "kind": "dashscope",
+      "api_key": "sk-aac3f9bfa7854c23b6e0619f9b52ffcf"
+    },
+    "rerank_provider": {
+      "kind": "dashscope",
+      "api_key": "sk-aac3f9bfa7854c23b6e0619f9b52ffcf"
     }
   },
   "models": {
-    "chat_default": {
-      "provider": "default_dashscope",
+    "chat_model": {
+      "provider": "chat_provider",
+      "type": "chat",
+      "model": "deepseek-chat"
+    },
+    "rewrite_model": {
+      "provider": "rewrite_provider",
       "type": "chat",
       "model": "qwen3-max"
     },
-    "rewrite_default": {
-      "provider": "default_dashscope",
-      "type": "chat",
-      "model": "qwen3-max"
-    },
-    "embedding_default": {
-      "provider": "default_dashscope",
+    "embedding_model": {
+      "provider": "embedding_provider",
       "type": "embedding",
       "model": "text-embedding-v2"
     },
-    "rerank_default": {
-      "provider": "default_dashscope",
+    "rerank_model": {
+      "provider": "rerank_provider",
       "type": "rerank",
       "model": "qwen3-vl-rerank"
     }
   },
   "assignments": {
-    "chat": "chat_default",
-    "rewrite": "rewrite_default",
-    "embedding": "embedding_default",
-    "rerank": "rerank_default"
+    "chat": "chat_model",
+    "rewrite": "rewrite_model",
+    "embedding": "embedding_model",
+    "rerank": "rerank_model"
   }
 }

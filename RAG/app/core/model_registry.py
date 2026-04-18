@@ -13,6 +13,12 @@ ENV_PLACEHOLDER_PATTERN = re.compile(r"^\$\{([A-Z0-9_]+)\}$")
 ProviderKind = Literal["openai_compatible", "dashscope"]
 ModelType = Literal["chat", "embedding", "rerank"]
 AssignmentName = Literal["chat", "rewrite", "embedding", "rerank"]
+MODEL_ASSIGNMENT_NAMES: tuple[AssignmentName, ...] = (
+    "chat",
+    "rewrite",
+    "embedding",
+    "rerank",
+)
 
 
 class ProviderConfig(BaseModel):
@@ -144,6 +150,88 @@ def build_legacy_registry_payload(settings) -> dict[str, Any]:
         },
     }
     return legacy_payload
+
+
+def build_model_config_forms(payload: dict[str, Any]) -> dict[str, dict[str, str]]:
+    registry = ModelRegistry.model_validate(payload)
+    forms: dict[str, dict[str, str]] = {}
+
+    for role in MODEL_ASSIGNMENT_NAMES:
+        resolved = registry.get_assignment(role)
+        forms[role] = {
+            "provider_kind": resolved.provider.kind,
+            "model": resolved.model,
+            "base_url": resolved.provider.base_url or "",
+            "api_key": resolved.provider.api_key or "",
+        }
+
+    return forms
+
+
+def validate_model_config_forms(model_configs: dict[str, Any]) -> dict[str, dict[str, str]]:
+    normalized: dict[str, dict[str, str]] = {}
+
+    for role in MODEL_ASSIGNMENT_NAMES:
+        role_config = model_configs.get(role)
+        if not isinstance(role_config, dict):
+            raise ValueError(f"{role} 模型配置不能为空")
+
+        provider_kind = str(role_config.get("provider_kind", "")).strip()
+        model_name = str(role_config.get("model", "")).strip()
+        base_url = str(role_config.get("base_url", "")).strip()
+        api_key = str(role_config.get("api_key", "")).strip()
+
+        if provider_kind not in {"openai_compatible", "dashscope"}:
+            raise ValueError(f"{role} 的 provider_kind 不合法")
+        if not model_name:
+            raise ValueError(f"{role} 的模型名称不能为空")
+        if provider_kind == "openai_compatible" and not base_url:
+            raise ValueError(f"{role} 使用 OpenAI 兼容接口时必须填写 URL")
+
+        normalized[role] = {
+            "provider_kind": provider_kind,
+            "model": model_name,
+            "base_url": base_url,
+            "api_key": api_key,
+        }
+
+    return normalized
+
+
+def build_registry_payload_from_forms(
+    model_configs: dict[str, dict[str, str]],
+) -> dict[str, Any]:
+    providers: dict[str, dict[str, str]] = {}
+    models: dict[str, dict[str, str]] = {}
+    assignments: dict[str, str] = {}
+
+    for role in MODEL_ASSIGNMENT_NAMES:
+        role_config = model_configs[role]
+        provider_name = f"{role}_provider"
+        model_name = f"{role}_model"
+        providers[provider_name] = {
+            "kind": role_config["provider_kind"],
+        }
+        if role_config["base_url"]:
+            providers[provider_name]["base_url"] = role_config["base_url"]
+        if role_config["api_key"]:
+            providers[provider_name]["api_key"] = role_config["api_key"]
+
+        model_type = "chat" if role in {"chat", "rewrite"} else role
+        models[model_name] = {
+            "provider": provider_name,
+            "type": model_type,
+            "model": role_config["model"],
+        }
+        assignments[role] = model_name
+
+    return validate_model_registry_data(
+        {
+            "providers": providers,
+            "models": models,
+            "assignments": assignments,
+        }
+    )
 
 
 def validate_model_registry_data(payload: dict[str, Any]) -> dict[str, Any]:

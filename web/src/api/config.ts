@@ -4,7 +4,6 @@ export type ConfigInputType =
   | 'number'
   | 'checkbox'
   | 'json-textarea'
-  | 'json-object'
 export type JsonValue =
   | string
   | number
@@ -26,17 +25,29 @@ export interface ConfigField {
   value: ConfigValue
 }
 
+export type ProviderKind = 'openai_compatible' | 'dashscope'
+
+export interface EditableModelConfig {
+  provider_kind: ProviderKind
+  model: string
+  base_url: string
+  api_key: string
+}
+
 export interface ConfigStateResponse {
   fields: ConfigField[]
+  model_configs: Record<string, EditableModelConfig>
 }
 
 export interface ConfigUpdateRequest {
   values: Record<string, ConfigValue>
+  model_configs: Record<string, EditableModelConfig>
 }
 
 export interface ConfigUpdateResponse {
   message: string
   fields: ConfigField[]
+  model_configs: Record<string, EditableModelConfig>
 }
 
 export async function getConfig(): Promise<ConfigStateResponse> {

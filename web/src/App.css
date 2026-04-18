@@ -272,6 +272,12 @@
   gap: 12px;
 }
 
+.config-field__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .config-input {
   width: 100%;
   min-height: 44px;

@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { getConfig, updateConfig } from '../../api/config'
-import type { ConfigField, ConfigValue } from '../../api/config'
+import type {
+  ConfigField,
+  ConfigValue,
+  EditableModelConfig,
+  ProviderKind,
+} from '../../api/config'
 import { Badge } from '../../components/ui/badge'
 import { Button } from '../../components/ui/button'
 import {
@@ -15,6 +20,20 @@ import { Textarea } from '../../components/ui/textarea'
 
 type DraftValue = string | boolean
 type DraftState = Record<string, DraftValue>
+type ModelConfigState = Record<string, EditableModelConfig>
+const LEGACY_MODEL_FIELD_KEYS = new Set([
+  'dashscope_api_key',
+  'chat_model_name',
+  'embedding_model_name',
+  'rerank_model_name',
+  'rewrite_model_name',
+])
+const MODEL_ROLE_LABELS: Record<string, string> = {
+  chat: '聊天模型',
+  rewrite: '改写模型',
+  embedding: 'Embedding 模型',
+  rerank: 'Rerank 模型',
+}
 
 function buildDraft(fields: ConfigField[]): DraftState {
   return Object.fromEntries(
@@ -22,8 +41,8 @@ function buildDraft(fields: ConfigField[]): DraftState {
       if (field.input_type === 'checkbox') {
         return [field.key, Boolean(field.value)]
       }
-      if (field.input_type === 'json-textarea' || field.input_type === 'json-object') {
-        const fallbackValue = field.input_type === 'json-object' ? {} : []
+      if (field.input_type === 'json-textarea') {
+        const fallbackValue: string[] = []
         return [field.key, JSON.stringify(field.value ?? fallbackValue, null, 2)]
       }
       return [field.key, field.value == null ? '' : String(field.value)]
@@ -69,26 +88,6 @@ function parseFieldValue(field: ConfigField, draftValue: DraftValue): ConfigValu
     return parsed
   }
 
-  if (field.input_type === 'json-object') {
-    const trimmed = textValue.trim()
-    if (!trimmed) {
-      if (field.nullable) return null
-      throw new Error(`${field.label} 不能为空`)
-    }
-
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(trimmed)
-    } catch {
-      throw new Error(`${field.label} 必须是合法的 JSON 对象`)
-    }
-
-    if (typeof parsed !== 'object' || parsed == null || Array.isArray(parsed)) {
-      throw new Error(`${field.label} 必须是 JSON 对象`)
-    }
-    return parsed as ConfigValue
-  }
-
   return textValue
 }
 
@@ -105,6 +104,8 @@ export default function ConfigPage() {
   const [fields, setFields] = useState<ConfigField[]>([])
   const [draft, setDraft] = useState<DraftState>({})
   const [initialDraft, setInitialDraft] = useState<DraftState>({})
+  const [modelConfigs, setModelConfigs] = useState<ModelConfigState>({})
+  const [initialModelConfigs, setInitialModelConfigs] = useState<ModelConfigState>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -123,6 +124,8 @@ export default function ConfigPage() {
         setFields(response.fields)
         setDraft(nextDraft)
         setInitialDraft(nextDraft)
+        setModelConfigs(response.model_configs)
+        setInitialModelConfigs(response.model_configs)
         setError(null)
       } catch (err) {
         if (cancelled) return
@@ -142,18 +145,16 @@ export default function ConfigPage() {
   }, [])
 
   const commonFields = useMemo(
-    () => fields.filter((field) => !field.advanced && field.key !== 'model_registry_json'),
-    [fields],
-  )
-
-  const modelRegistryField = useMemo(
-    () => fields.find((field) => field.key === 'model_registry_json') ?? null,
+    () =>
+      fields.filter(
+        (field) => !field.advanced && !LEGACY_MODEL_FIELD_KEYS.has(field.key),
+      ),
     [fields],
   )
 
   const advancedGroups = useMemo(() => {
     return fields
-      .filter((field) => field.advanced)
+      .filter((field) => field.advanced && !LEGACY_MODEL_FIELD_KEYS.has(field.key))
       .reduce<Record<string, ConfigField[]>>((acc, field) => {
         acc[field.group] ??= []
         acc[field.group].push(field)
@@ -161,7 +162,9 @@ export default function ConfigPage() {
       }, {})
   }, [fields])
 
-  const isDirty = JSON.stringify(draft) !== JSON.stringify(initialDraft)
+  const isDirty =
+    JSON.stringify(draft) !== JSON.stringify(initialDraft) ||
+    JSON.stringify(modelConfigs) !== JSON.stringify(initialModelConfigs)
   const statusText = loading
     ? '加载中'
     : saving
@@ -180,6 +183,23 @@ export default function ConfigPage() {
 
   const handleReset = () => {
     setDraft(initialDraft)
+    setModelConfigs(initialModelConfigs)
+    setError(null)
+    setSuccess(null)
+  }
+
+  const handleModelConfigChange = (
+    role: string,
+    key: keyof EditableModelConfig,
+    value: string,
+  ) => {
+    setModelConfigs((prev) => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        [key]: key === 'provider_kind' ? (value as ProviderKind) : value,
+      },
+    }))
     setError(null)
     setSuccess(null)
   }
@@ -196,11 +216,13 @@ export default function ConfigPage() {
       setError(null)
       setSuccess(null)
 
-      const response = await updateConfig({ values })
+      const response = await updateConfig({ values, model_configs: modelConfigs })
       const nextDraft = buildDraft(response.fields)
       setFields(response.fields)
       setDraft(nextDraft)
       setInitialDraft(nextDraft)
+      setModelConfigs(response.model_configs)
+      setInitialModelConfigs(response.model_configs)
       setSuccess(response.message)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -309,32 +331,84 @@ export default function ConfigPage() {
         </CardContent>
       </Card>
 
-      {modelRegistryField && (
+      {Object.keys(modelConfigs).length > 0 && (
         <Card className="panel">
           <CardHeader>
-            <CardTitle>模型注册表</CardTitle>
+            <CardTitle>模型配置</CardTitle>
             <CardDescription>
-              为 chat、rewrite、embedding、rerank 分别指定模型、provider、base_url 与
-              API key。支持 `${'{ENV_VAR}'}` 占位写法。
+              分别配置聊天、改写、Embedding 和 Rerank 模型的 provider、模型名、接口地址与
+              API key。
             </CardDescription>
           </CardHeader>
           <CardContent className="panel-content">
-            <div className="config-field config-field--full">
-              <div className="config-field__header">
-                <label className="field-label" htmlFor={`config-${modelRegistryField.key}`}>
-                  {modelRegistryField.label}
-                </label>
-                <Badge variant="outline">JSON</Badge>
-              </div>
+            <div className="config-form-grid">
+              {Object.entries(modelConfigs).map(([role, modelConfig]) => (
+                <div key={role} className="config-field">
+                  <div className="config-field__header">
+                    <label className="field-label">{MODEL_ROLE_LABELS[role] ?? role}</label>
+                    <Badge variant="outline">{role}</Badge>
+                  </div>
 
-              <Textarea
-                id={`config-${modelRegistryField.key}`}
-                rows={18}
-                value={String(draft[modelRegistryField.key] ?? '')}
-                onChange={(e) => handleChange(modelRegistryField.key, e.target.value)}
-              />
+                  <div className="config-field__stack">
+                    <label className="field-label" htmlFor={`model-provider-${role}`}>
+                      Provider
+                    </label>
+                    <select
+                      id={`model-provider-${role}`}
+                      className="config-input"
+                      value={modelConfig.provider_kind}
+                      onChange={(e) =>
+                        handleModelConfigChange(role, 'provider_kind', e.target.value)
+                      }
+                    >
+                      <option value="openai_compatible">OpenAI Compatible</option>
+                      <option value="dashscope">DashScope</option>
+                    </select>
+                  </div>
 
-              {renderFieldDescription(modelRegistryField)}
+                  <div className="config-field__stack">
+                    <label className="field-label" htmlFor={`model-name-${role}`}>
+                      模型名称
+                    </label>
+                    <input
+                      id={`model-name-${role}`}
+                      className="config-input"
+                      value={modelConfig.model}
+                      onChange={(e) => handleModelConfigChange(role, 'model', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="config-field__stack">
+                    <label className="field-label" htmlFor={`model-url-${role}`}>
+                      URL
+                    </label>
+                    <input
+                      id={`model-url-${role}`}
+                      className="config-input"
+                      value={modelConfig.base_url}
+                      placeholder={
+                        modelConfig.provider_kind === 'dashscope'
+                          ? 'DashScope 可留空'
+                          : 'https://your-openai-compatible-host/v1'
+                      }
+                      onChange={(e) => handleModelConfigChange(role, 'base_url', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="config-field__stack">
+                    <label className="field-label" htmlFor={`model-api-key-${role}`}>
+                      API Key
+                    </label>
+                    <input
+                      id={`model-api-key-${role}`}
+                      className="config-input"
+                      type="password"
+                      value={modelConfig.api_key}
+                      onChange={(e) => handleModelConfigChange(role, 'api_key', e.target.value)}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

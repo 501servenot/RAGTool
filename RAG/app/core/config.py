@@ -64,16 +64,6 @@ class Settings(BaseSettings):
 
 CONFIG_FIELD_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
-        "key": "model_registry_json",
-        "label": "模型注册表",
-        "description": "为 chat、rewrite、embedding、rerank 指定模型、provider、base_url 和 api_key。",
-        "group": "模型配置",
-        "input_type": "json-object",
-        "advanced": False,
-        "sensitive": False,
-        "nullable": False,
-    },
-    {
         "key": "dashscope_api_key",
         "label": "API Key",
         "description": "DashScope 百炼平台的访问密钥。",
@@ -387,7 +377,14 @@ CONFIG_FIELD_DEFINITIONS: tuple[dict[str, Any], ...] = (
 
 CONFIG_FIELD_MAP = {item["key"]: item for item in CONFIG_FIELD_DEFINITIONS}
 ENV_LINE_PATTERN = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$")
-SPECIAL_CONFIG_FIELDS = {"model_registry_json"}
+SPECIAL_CONFIG_FIELDS = {"model_configs"}
+LEGACY_MODEL_FIELD_KEYS = {
+    "dashscope_api_key",
+    "chat_model_name",
+    "embedding_model_name",
+    "rerank_model_name",
+    "rewrite_model_name",
+}
 
 
 def _settings_env_files() -> tuple[str, str]:
@@ -419,12 +416,12 @@ def validate_setting_updates(raw_updates: dict[str, Any]) -> dict[str, Any]:
 
     for key, value in raw_updates.items():
         if key in SPECIAL_CONFIG_FIELDS:
-            if key == "model_registry_json":
+            if key == "model_configs":
                 if not isinstance(value, dict):
-                    raise ValueError("模型注册表必须是 JSON 对象")
-                from app.core.model_registry import validate_model_registry_data
+                    raise ValueError("模型配置必须是对象")
+                from app.core.model_registry import validate_model_config_forms
 
-                validated[key] = validate_model_registry_data(value)
+                validated[key] = validate_model_config_forms(value)
                 continue
 
         field_info = settings_fields.get(key)
@@ -445,15 +442,38 @@ def validate_setting_updates(raw_updates: dict[str, Any]) -> dict[str, Any]:
 def upsert_settings(updates: dict[str, Any], *, env_path: Path | None = None) -> None:
     target_path = env_path or ROOT_ENV_FILE
     target_path.parent.mkdir(parents=True, exist_ok=True)
-    registry_payload = updates.get("model_registry_json")
-    if registry_payload is not None:
-        from app.core.model_registry import clear_model_registry_cache, write_model_registry
+    effective_updates = dict(updates)
+    model_configs = effective_updates.get("model_configs")
+    if model_configs is not None:
+        from app.core.model_registry import (
+            build_registry_payload_from_forms,
+            clear_model_registry_cache,
+            write_model_registry,
+        )
 
         registry_path = _resolve_model_registry_path(
-            updates.get("model_registry_path"),
+            effective_updates.get("model_registry_path"),
         )
+        registry_payload = build_registry_payload_from_forms(model_configs)
         write_model_registry(registry_payload, registry_path=registry_path)
         clear_model_registry_cache()
+        effective_updates.update(
+            {
+                "chat_model_name": model_configs["chat"]["model"],
+                "rewrite_model_name": model_configs["rewrite"]["model"],
+                "embedding_model_name": model_configs["embedding"]["model"],
+                "rerank_model_name": model_configs["rerank"]["model"],
+            }
+        )
+        dashscope_api_key = next(
+            (
+                item["api_key"]
+                for item in model_configs.values()
+                if item["provider_kind"] == "dashscope" and item["api_key"]
+            ),
+            "",
+        )
+        effective_updates["dashscope_api_key"] = dashscope_api_key
 
     existing_lines = (
         target_path.read_text(encoding="utf-8").splitlines()
@@ -463,7 +483,7 @@ def upsert_settings(updates: dict[str, Any], *, env_path: Path | None = None) ->
 
     env_updates = {
         _env_var_name(key): value
-        for key, value in updates.items()
+        for key, value in effective_updates.items()
         if key not in SPECIAL_CONFIG_FIELDS
     }
     remaining = dict(env_updates)
@@ -493,7 +513,7 @@ def upsert_settings(updates: dict[str, Any], *, env_path: Path | None = None) ->
 
     target_path.write_text("\n".join(next_lines).rstrip() + "\n", encoding="utf-8")
 
-    for key, value in updates.items():
+    for key, value in effective_updates.items():
         if key in SPECIAL_CONFIG_FIELDS:
             continue
         env_key = _env_var_name(key)
@@ -508,12 +528,6 @@ def upsert_settings(updates: dict[str, Any], *, env_path: Path | None = None) ->
 def build_config_fields() -> list[dict[str, Any]]:
     settings = get_settings()
     values = settings.model_dump()
-    from app.core.model_registry import get_model_registry_payload
-
-    values["model_registry_json"] = get_model_registry_payload(
-        registry_path=_resolve_model_registry_path(settings.model_registry_path),
-        settings=settings,
-    )
 
     return [
         {
@@ -522,6 +536,17 @@ def build_config_fields() -> list[dict[str, Any]]:
         }
         for definition in CONFIG_FIELD_DEFINITIONS
     ]
+
+
+def build_model_configs() -> dict[str, dict[str, str]]:
+    settings = get_settings()
+    from app.core.model_registry import build_model_config_forms, get_model_registry_payload
+
+    payload = get_model_registry_payload(
+        registry_path=_resolve_model_registry_path(settings.model_registry_path),
+        settings=settings,
+    )
+    return build_model_config_forms(payload)
 
 
 def _resolve_model_registry_path(path_value: str | None) -> Path:
