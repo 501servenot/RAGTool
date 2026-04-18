@@ -1,11 +1,98 @@
-# RAG Demo01
+# RAGTool
 
-一个前后端分离的 RAG 示例项目：
+这一个前后端分离的 RAG 示例项目：
 
 - `RAG/`：FastAPI 后端，负责知识库入库、检索、rerank 和对话
 - `web/`：Vite + React 前端
 - `storage/`：运行时数据目录（知识库、聊天历史、md5 索引）
 - `scripts/`：初始化和启动脚手架
+
+## RAG 架构概览
+
+这个项目的 RAG 框架可以概括为：
+
+- 前端：`Vite + React`
+- 后端：`FastAPI`
+- 向量库：`Chroma`
+- Embedding / 对话 / Rerank：`DashScope / 通义模型`
+- 历史消息：基于文件的会话存储
+
+它不是一个“只做向量检索”的简单问答系统，而是包含了这些关键环节：
+
+- 文档上传与去重
+- 语义感知切分
+- 向量化入库
+- Query Rewrite
+- Top-K 召回
+- Rerank
+- 命中 chunk 的前后文补齐
+- 基于上下文和会话历史的回答生成
+
+### 整体流程图
+
+```mermaid
+flowchart TD
+    user[用户提问] --> webUi[Web 前端]
+    webUi --> chatApi[FastAPI Chat API]
+    chatApi --> rewriteQuery[Query Rewrite]
+    rewriteQuery --> retrieveDocs[Chroma TopK 检索]
+    retrieveDocs --> rerankDocs[Rerank 重排]
+    rerankDocs --> expandContext[补充命中 Chunk 前后文]
+    expandContext --> promptBuilder[组装 Prompt 与历史消息]
+    promptBuilder --> llmAnswer[通义聊天模型生成回答]
+    llmAnswer --> streamResponse[流式或非流式返回]
+    streamResponse --> webUi
+
+    uploadFile[上传 txt md pdf] --> parseFile[文件读取与解析]
+    parseFile --> semanticChunk[语义感知切分]
+    semanticChunk --> embedDocs[Embedding 向量化]
+    embedDocs --> chromaStore[Chroma 持久化]
+    chromaStore --> retrieveDocs
+```
+
+### 入库链路
+
+知识库写入时，后端会先读取上传文件内容，然后进行更偏语义的切分，而不是只按固定字符长度硬切。之后每个 chunk 会带上 `document_id`、`source`、`chunk_index` 等 metadata 写入 Chroma，便于后续检索、补邻块和文档管理。
+
+可以把入库过程理解成：
+
+```text
+上传文件 -> 提取文本 -> 语义切分 -> Embedding -> 写入 Chroma
+```
+
+### 查询链路
+
+用户发起提问后，后端会先结合最近会话历史做 Query Rewrite，把原始问题改写成更适合知识库检索的问题。然后进入检索与生成链路：
+
+1. 用改写后的问题做向量召回
+2. 对召回结果做 rerank
+3. 对最终命中的 chunk 补齐前后相邻 chunk
+4. 把整理后的上下文连同历史消息一起送给聊天模型
+5. 返回最终回答
+
+这里有一个很重要的设计点：
+
+- **先 rerank，再补前后 chunk**
+
+也就是说，相邻 chunk 的作用是补足上下文，而不是参与主排序，这样可以尽量减少噪声对排序结果的干扰。
+
+### 核心模块分工
+
+- `RAG/app/services/knowledge_base.py`：知识库入库、分块、去重、删除
+- `RAG/app/utils/semantic_chunker.py`：语义感知切分
+- `RAG/app/services/vector_store.py`：Chroma 检索与相邻 chunk 扩展
+- `RAG/app/services/query_rewrite.py`：查询改写
+- `RAG/app/services/rerank.py`：Rerank 封装
+- `RAG/app/services/rag.py`：RAG 主编排链路
+- `RAG/app/memory/historymessage.py`：会话历史文件存储
+
+### 一句话理解这个项目
+
+这个项目的回答链路可以简化理解为：
+
+```text
+用户问题 -> 改写 -> 检索 -> 重排 -> 补上下文 -> 生成答案
+```
 
 ## 目录结构
 
