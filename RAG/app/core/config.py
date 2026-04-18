@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     rewrite_history_turns: int = 3
     rewrite_max_query_length: int = 200
     rewrite_fallback_to_original: bool = True
+    rewrite_min_reranked_docs: int = 3
+    rewrite_quality_top1_threshold: float = 0.7
+    rewrite_quality_top3_avg_threshold: float = 0.55
+    rewrite_low_top1_threshold: float = 0.45
+    rewrite_low_top3_avg_threshold: float = 0.35
+    rewrite_compare_margin: float = 0.08
 
 
 @lru_cache

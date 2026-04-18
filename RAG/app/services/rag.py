@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from dataclasses import dataclass
 from operator import itemgetter
 from time import perf_counter
 from typing import AsyncIterator
@@ -14,12 +15,22 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 
 from app.core.config import get_settings
 from app.memory.historymessage import FileChatMessageHistory
-from app.services.query_rewrite import QueryRewriteService
+from app.services.query_rewrite import QueryRewriteResult, QueryRewriteService
 from app.services.rerank import RerankService
 from app.services.vector_store import VectorStoreService
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class RetrievalQualityAssessment:
+    label: str
+    should_rewrite: bool
+    reason: str
+    top1_score: float | None
+    top3_avg_score: float | None
+    doc_count: int
 
 
 class RAGservice(object):
@@ -156,6 +167,153 @@ class RAGservice(object):
         )
         return expanded_docs
 
+    @staticmethod
+    def _coerce_score(value) -> float | None:
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value)
+            except ValueError:
+                return None
+        return None
+
+    def _extract_rerank_scores(self, docs: list[Document]) -> list[float]:
+        scores: list[float] = []
+        for doc in docs:
+            score = self._coerce_score((doc.metadata or {}).get("rerank_score"))
+            if score is not None:
+                scores.append(score)
+        return scores
+
+    def _assess_retrieval_quality(
+        self, docs: list[Document]
+    ) -> RetrievalQualityAssessment:
+        if not docs:
+            return RetrievalQualityAssessment(
+                label="empty",
+                should_rewrite=True,
+                reason="no_documents",
+                top1_score=None,
+                top3_avg_score=None,
+                doc_count=0,
+            )
+
+        scores = self._extract_rerank_scores(docs)
+        min_docs = max(getattr(self.settings, "rewrite_min_reranked_docs", 3), 1)
+
+        if not scores:
+            should_rewrite = len(docs) < min_docs
+            return RetrievalQualityAssessment(
+                label="medium" if not should_rewrite else "low",
+                should_rewrite=should_rewrite,
+                reason="missing_rerank_scores"
+                if not should_rewrite
+                else "insufficient_docs_without_scores",
+                top1_score=None,
+                top3_avg_score=None,
+                doc_count=len(docs),
+            )
+
+        top1_score = scores[0]
+        top3_scores = scores[: min(3, len(scores))]
+        top3_avg_score = sum(top3_scores) / len(top3_scores)
+        high_top1 = getattr(self.settings, "rewrite_quality_top1_threshold", 0.7)
+        high_top3 = getattr(
+            self.settings, "rewrite_quality_top3_avg_threshold", 0.55
+        )
+        low_top1 = getattr(self.settings, "rewrite_low_top1_threshold", 0.45)
+        low_top3 = getattr(self.settings, "rewrite_low_top3_avg_threshold", 0.35)
+
+        if len(docs) >= min_docs and top1_score >= high_top1 and top3_avg_score >= high_top3:
+            return RetrievalQualityAssessment(
+                label="high",
+                should_rewrite=False,
+                reason="high_quality_retrieval",
+                top1_score=top1_score,
+                top3_avg_score=top3_avg_score,
+                doc_count=len(docs),
+            )
+
+        if len(docs) < 2 or top1_score < low_top1 or top3_avg_score < low_top3:
+            return RetrievalQualityAssessment(
+                label="low",
+                should_rewrite=True,
+                reason="low_quality_retrieval",
+                top1_score=top1_score,
+                top3_avg_score=top3_avg_score,
+                doc_count=len(docs),
+            )
+
+        return RetrievalQualityAssessment(
+            label="medium",
+            should_rewrite=True,
+            reason="medium_quality_retrieval",
+            top1_score=top1_score,
+            top3_avg_score=top3_avg_score,
+            doc_count=len(docs),
+        )
+
+    @staticmethod
+    def _assessment_rank(assessment: RetrievalQualityAssessment) -> int:
+        rank_map = {"empty": 0, "low": 1, "medium": 2, "high": 3}
+        return rank_map.get(assessment.label, 0)
+
+    def _choose_better_query(
+        self,
+        *,
+        original_query: str,
+        original_docs: list[Document],
+        rewritten_query: str,
+        rewritten_docs: list[Document],
+    ) -> tuple[str, list[Document]]:
+        original_assessment = self._assess_retrieval_quality(original_docs)
+        rewritten_assessment = self._assess_retrieval_quality(rewritten_docs)
+        logger.info(
+            (
+                "rewrite comparison original_query=%s original_quality=%s original_top1=%s "
+                "original_top3_avg=%s rewritten_query=%s rewritten_quality=%s "
+                "rewritten_top1=%s rewritten_top3_avg=%s"
+            ),
+            self._short_query(original_query),
+            original_assessment.label,
+            original_assessment.top1_score,
+            original_assessment.top3_avg_score,
+            self._short_query(rewritten_query),
+            rewritten_assessment.label,
+            rewritten_assessment.top1_score,
+            rewritten_assessment.top3_avg_score,
+        )
+
+        original_rank = self._assessment_rank(original_assessment)
+        rewritten_rank = self._assessment_rank(rewritten_assessment)
+        if rewritten_rank > original_rank:
+            return rewritten_query, rewritten_docs
+        if rewritten_rank < original_rank:
+            return original_query, original_docs
+
+        compare_margin = getattr(self.settings, "rewrite_compare_margin", 0.08)
+        original_top1 = original_assessment.top1_score or 0.0
+        rewritten_top1 = rewritten_assessment.top1_score or 0.0
+        original_top3_avg = original_assessment.top3_avg_score or 0.0
+        rewritten_top3_avg = rewritten_assessment.top3_avg_score or 0.0
+        if (
+            rewritten_top1 >= original_top1 + compare_margin
+            or rewritten_top3_avg >= original_top3_avg + compare_margin
+        ):
+            return rewritten_query, rewritten_docs
+        return original_query, original_docs
+
+    @staticmethod
+    def _build_skipped_rewrite_result(query: str, reason: str) -> QueryRewriteResult:
+        return QueryRewriteResult(
+            original_query=query,
+            rewritten_query=query,
+            rewrite_reason=reason,
+            used_history=False,
+            fallback_used=False,
+        )
+
     async def _retrieve_and_rerank(self, query: str) -> list[Document]:
         started_at = perf_counter()
         docs = await asyncio.to_thread(
@@ -210,13 +368,48 @@ class RAGservice(object):
 
     async def _prepare_chain_inputs(self, prompt: str, session_id: str) -> dict:
         history = self._get_message_history(session_id).messages
-        rewrite_result = await self.query_rewrite_service.rewrite(prompt, history)
-        docs = await self._retrieve_and_rerank(rewrite_result.rewritten_query)
+        original_docs = await self._retrieve_and_rerank(prompt)
+        original_assessment = self._assess_retrieval_quality(original_docs)
+        logger.info(
+            (
+                "rewrite gate query=%s quality=%s should_rewrite=%s reason=%s "
+                "top1=%s top3_avg=%s doc_count=%s"
+            ),
+            self._short_query(prompt),
+            original_assessment.label,
+            original_assessment.should_rewrite,
+            original_assessment.reason,
+            original_assessment.top1_score,
+            original_assessment.top3_avg_score,
+            original_assessment.doc_count,
+        )
+
+        if not original_assessment.should_rewrite:
+            rewrite_result = self._build_skipped_rewrite_result(
+                prompt, "skipped_high_quality"
+            )
+            selected_query = prompt
+            selected_docs = original_docs
+        else:
+            rewrite_result = await self.query_rewrite_service.rewrite(prompt, history)
+            selected_query = prompt
+            selected_docs = original_docs
+            if rewrite_result.rewritten_query != prompt:
+                rewritten_docs = await self._retrieve_and_rerank(
+                    rewrite_result.rewritten_query
+                )
+                selected_query, selected_docs = self._choose_better_query(
+                    original_query=prompt,
+                    original_docs=original_docs,
+                    rewritten_query=rewrite_result.rewritten_query,
+                    rewritten_docs=rewritten_docs,
+                )
+
         return {
             "original_input": prompt,
-            "rewritten_input": rewrite_result.rewritten_query,
+            "rewritten_input": selected_query,
             "rewrite_result": rewrite_result,
-            "context": self._format_documents(docs),
+            "context": self._format_documents(selected_docs),
         }
 
     async def invoke(self, prompt: str, session_id: str) -> str:
