@@ -3,8 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import {
   deleteKnowledgeDocument,
   getKnowledgeDocuments,
-} from '../api/knowledge'
-import type { KnowledgeBaseSummaryResponse } from '../api/knowledge'
+} from '../../api/knowledge'
+import type { KnowledgeBaseSummaryResponse } from '../../api/knowledge'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -12,16 +12,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../components/ui/alert-dialog'
-import { Badge } from '../components/ui/badge'
-import { Button } from '../components/ui/button'
+} from '../../components/ui/alert-dialog'
+import { Badge } from '../../components/ui/badge'
+import { Button } from '../../components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../components/ui/card'
+} from '../../components/ui/card'
 
 const INITIAL_DATA: KnowledgeBaseSummaryResponse = {
   document_count: 0,

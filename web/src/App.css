@@ -239,6 +239,113 @@
   color: var(--foreground-soft);
 }
 
+.config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.config-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.config-field--full {
+  width: 100%;
+}
+
+.config-field__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.config-input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--foreground);
+  padding: 0 14px;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.config-input:focus {
+  border-color: rgba(113, 112, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(113, 112, 255, 0.12);
+}
+
+.config-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--foreground-soft);
+}
+
+.config-checkbox input {
+  accent-color: var(--accent-solid);
+}
+
+.config-field__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.config-group + .config-group {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.config-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.config-group__header h3 {
+  font-size: 18px;
+  font-weight: 510;
+}
+
+.config-group__header span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
 .file-picker {
   display: flex;
   flex-direction: column;

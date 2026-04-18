@@ -110,8 +110,30 @@ class RerankService:
         if isinstance(response, dict):
             output = response.get("output") or {}
             results = output.get("results") or []
-            return [item for item in results if isinstance(item, dict)]
+            if results:
+                return [item for item in results if isinstance(item, dict)]
+
+            if isinstance(response.get("results"), list):
+                return [
+                    RerankService._normalize_result_item(item)
+                    for item in response["results"]
+                    if isinstance(item, dict)
+                ]
+
+            if isinstance(response.get("data"), list):
+                return [
+                    RerankService._normalize_result_item(item)
+                    for item in response["data"]
+                    if isinstance(item, dict)
+                ]
         return []
+
+    @staticmethod
+    def _normalize_result_item(item: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(item)
+        if "relevance_score" not in normalized and "score" in normalized:
+            normalized["relevance_score"] = normalized.get("score")
+        return normalized
 
     @staticmethod
     def _extract_usage(response: Any) -> dict[str, Any]:

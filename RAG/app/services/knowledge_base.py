@@ -11,15 +11,16 @@ from app.utils.md5 import check_md5, remove_md5, save_md5, string_to_md5
 
 
 class KnowledgeBaseServer(object):
-    def __init__(self):
+    def __init__(self, *, embedding=None):
         settings = get_settings()
         os.makedirs(settings.persist_directory, exist_ok=True)
+        embedding_function = embedding or DashScopeEmbeddings(
+            model=settings.embedding_model_name,
+        )
 
         self.chroma = Chroma(
             collection_name=settings.collection_name,
-            embedding_function=DashScopeEmbeddings(
-                model=settings.embedding_model_name,
-            ),
+            embedding_function=embedding_function,
             persist_directory=settings.persist_directory,
         )
         self.spliter = SemanticTextSplitter(

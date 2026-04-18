@@ -4,24 +4,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
-from app.core.config import get_settings
-from app.services.chat_history import ChatHistoryService
-from app.services.knowledge_base import KnowledgeBaseServer
-from app.services.rag import RAGservice
+from app.core.runtime import clear_runtime_services, initialize_runtime_services
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    get_settings()
-    app.state.kb_service = KnowledgeBaseServer()
-    app.state.rag_service = RAGservice()
-    app.state.chat_history_service = ChatHistoryService()
+    initialize_runtime_services(app)
     try:
         yield
     finally:
-        app.state.kb_service = None
-        app.state.rag_service = None
-        app.state.chat_history_service = None
+        clear_runtime_services(app)
 
 
 app = FastAPI(

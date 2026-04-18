@@ -5,6 +5,7 @@ const navItems = [
   { to: '/chat', label: '对话', description: '检索问答与会话管理' },
   { to: '/upload', label: '文档上传', description: '将资料写入知识库索引' },
   { to: '/knowledge', label: '知识库', description: '查看文档、切片与状态' },
+  { to: '/config', label: '配置', description: '管理模型参数与运行时设置' },
 ]
 
 export default function AppShell() {

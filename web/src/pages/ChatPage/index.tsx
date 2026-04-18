@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
 
-import { deleteChatSession, getChatSessionMessages, getChatSessions } from '../api/chat-history'
-import { streamChat } from '../api/chat'
-import { getKnowledgeDocuments } from '../api/knowledge'
-import type { ChatHistoryMessage, ChatSessionSummary } from '../api/chat-history'
+import { deleteChatSession, getChatSessionMessages, getChatSessions } from '../../api/chat-history'
+import { streamChat } from '../../api/chat'
+import { getKnowledgeDocuments } from '../../api/knowledge'
+import type { ChatHistoryMessage, ChatSessionSummary } from '../../api/chat-history'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -12,18 +12,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../components/ui/alert-dialog'
-import { Badge } from '../components/ui/badge'
-import { Button } from '../components/ui/button'
+} from '../../components/ui/alert-dialog'
+import { Badge } from '../../components/ui/badge'
+import { Button } from '../../components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../components/ui/card'
-import { ScrollArea } from '../components/ui/scroll-area'
-import { Textarea } from '../components/ui/textarea'
+} from '../../components/ui/card'
+import { ScrollArea } from '../../components/ui/scroll-area'
+import { Textarea } from '../../components/ui/textarea'
 
 type ChatRole = 'user' | 'ai'
 type StatusTone = 'default' | 'success' | 'warning' | 'danger' | 'outline'

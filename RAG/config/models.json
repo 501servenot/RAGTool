@@ -1,0 +1,36 @@
+{
+  "providers": {
+    "default_dashscope": {
+      "kind": "dashscope",
+      "api_key": "${DASHSCOPE_API_KEY}"
+    }
+  },
+  "models": {
+    "chat_default": {
+      "provider": "default_dashscope",
+      "type": "chat",
+      "model": "qwen3-max"
+    },
+    "rewrite_default": {
+      "provider": "default_dashscope",
+      "type": "chat",
+      "model": "qwen3-max"
+    },
+    "embedding_default": {
+      "provider": "default_dashscope",
+      "type": "embedding",
+      "model": "text-embedding-v2"
+    },
+    "rerank_default": {
+      "provider": "default_dashscope",
+      "type": "rerank",
+      "model": "qwen3-vl-rerank"
+    }
+  },
+  "assignments": {
+    "chat": "chat_default",
+    "rewrite": "rewrite_default",
+    "embedding": "embedding_default",
+    "rerank": "rerank_default"
+  }
+}

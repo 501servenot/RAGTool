@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
-import { getKnowledgeDocuments } from '../api/knowledge'
-import { uploadFile } from '../api/upload'
-import type { UploadResponse } from '../api/upload'
-import { Badge } from '../components/ui/badge'
-import { Button } from '../components/ui/button'
+import { getKnowledgeDocuments } from '../../api/knowledge'
+import { uploadFile } from '../../api/upload'
+import type { UploadResponse } from '../../api/upload'
+import { Badge } from '../../components/ui/badge'
+import { Button } from '../../components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../components/ui/card'
-import { ScrollArea } from '../components/ui/scroll-area'
+} from '../../components/ui/card'
+import { ScrollArea } from '../../components/ui/scroll-area'
 
 interface UploadRecord extends UploadResponse {
   id: string
