@@ -1,7 +1,6 @@
 # RAGTool
 
-> 提示：当前项目默认使用阿里云百炼平台的 API（如 DashScope / 通义相关能力）。后续会逐步兼容其他第三方模型与 API 服务。
-请访问[阿里云百炼平台](https://bailian.console.aliyun.com/cn)获取DASHSCOPE_API_KEY
+> 提示：请自行配置Chat,embedding,Rerank,Rewrite模型base-url和API-key，默认使用阿里云百炼平台的DashScope模型
 
 这一个前后端分离的 RAG 示例项目：
 
