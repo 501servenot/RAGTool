@@ -1,19 +1,10 @@
+import { Alert, Button, Card, Tag, Upload } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
-import type { ChangeEvent } from 'react'
+import type { UploadFile, UploadProps } from 'antd'
 
 import { getKnowledgeDocuments } from '../../api/knowledge'
 import { uploadFile } from '../../api/upload'
 import type { UploadResponse } from '../../api/upload'
-import { Badge } from '../../components/ui/badge'
-import { Button } from '../../components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../../components/ui/card'
-import { ScrollArea } from '../../components/ui/scroll-area'
 
 interface UploadRecord extends UploadResponse {
   id: string
@@ -70,9 +61,14 @@ export default function UploadPage() {
     return '知识库暂无文档'
   }, [knowledgeLoading, uploading, knowledgeReady])
 
-  const handlePick = (e: ChangeEvent<HTMLInputElement>) => {
+  const handlePick: UploadProps['onChange'] = ({ fileList }) => {
     setUploadError(null)
-    setFile(e.target.files?.[0] ?? null)
+    setFile((fileList[fileList.length - 1]?.originFileObj as File | undefined) ?? null)
+  }
+
+  const handleRemove = () => {
+    setFile(null)
+    return true
   }
 
   const handleUpload = async () => {
@@ -94,8 +90,6 @@ export default function UploadPage() {
       setKnowledgeReady(true)
       setKnowledgeError(null)
       setFile(null)
-      const inputEl = document.getElementById('upload-page-file-input') as HTMLInputElement | null
-      if (inputEl) inputEl.value = ''
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -104,42 +98,57 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-antd">
       <header className="page-header">
         <div>
           <h2 className="page-title">文档上传</h2>
           <p className="page-description">上传知识文档并写入知识库，随后即可在对话页继续提问。</p>
         </div>
-        <Badge variant={knowledgeReady ? 'success' : 'outline'}>{statusText}</Badge>
+        <Tag color={knowledgeReady ? 'success' : 'default'}>{statusText}</Tag>
       </header>
 
       <div className="upload-page-layout">
-        <Card className="panel">
-          <CardHeader>
-            <CardTitle>上传到知识库</CardTitle>
-            <CardDescription>支持 txt、md、pdf，上传成功后会立即参与后续检索。</CardDescription>
-          </CardHeader>
-          <CardContent className="panel-content">
-            <label htmlFor="upload-page-file-input" className="file-picker">
-              <span className="field-label">选择文件</span>
-              <input
-                id="upload-page-file-input"
-                type="file"
-                accept={ACCEPT_EXT}
-                onChange={handlePick}
-                disabled={uploading}
-              />
-              <span className="file-picker__text">
+        <Card className="panel antd-panel-card" styles={{ body: { padding: 0 } }}>
+          <div className="page-antd-card-header">
+            <div className="page-antd-card-title">上传到知识库</div>
+            <div className="page-antd-card-description">
+              支持 txt、md、pdf，上传成功后会立即参与后续检索。
+            </div>
+          </div>
+          <div className="panel-content page-antd-card-body">
+            <Upload.Dragger
+              accept={ACCEPT_EXT}
+              beforeUpload={() => false}
+              disabled={uploading}
+              maxCount={1}
+              multiple={false}
+              onChange={handlePick}
+              onRemove={handleRemove}
+              className="page-upload-dragger"
+              fileList={
+                file
+                  ? ([
+                      {
+                        uid: file.name,
+                        name: file.name,
+                        size: file.size,
+                      },
+                    ] satisfies UploadFile[])
+                  : []
+              }
+            >
+              <p className="field-label">选择文件</p>
+              <p className="page-antd-card-description">
                 {file ? `${file.name} (${(file.size / 1024).toFixed(2)} KB)` : '支持 txt / md / pdf'}
-              </span>
-            </label>
+              </p>
+            </Upload.Dragger>
 
-            <Button disabled={!file || uploading} onClick={handleUpload}>
+            <Button type="primary" disabled={!file || uploading} onClick={handleUpload}>
               {uploading ? '上传中...' : '上传并解析'}
             </Button>
 
-            {uploadError && <div className="ui-alert ui-alert--error">{uploadError}</div>}
-            {knowledgeError && <div className="ui-alert ui-alert--error">{knowledgeError}</div>}
+            {uploadError && <Alert type="error" showIcon message={uploadError} />}
+            {knowledgeError && <Alert type="error" showIcon message={knowledgeError} />}
 
             <div className="summary-list">
               <div className="summary-item">
@@ -151,16 +160,16 @@ export default function UploadPage() {
                 <strong>{knowledgeReady ? '可聊天' : knowledgeLoading ? '读取中' : '暂无文档'}</strong>
               </div>
             </div>
-          </CardContent>
+          </div>
         </Card>
 
-        <Card className="panel">
-          <CardHeader>
-            <CardTitle>最近上传记录</CardTitle>
-            <CardDescription>显示当前页面会话中的最近上传结果。</CardDescription>
-          </CardHeader>
-          <CardContent className="panel-content">
-            <ScrollArea className="upload-history">
+        <Card className="panel antd-panel-card" styles={{ body: { padding: 0 } }}>
+          <div className="page-antd-card-header">
+            <div className="page-antd-card-title">最近上传记录</div>
+            <div className="page-antd-card-description">显示当前页面会话中的最近上传结果。</div>
+          </div>
+          <div className="panel-content page-antd-card-body">
+            <div className="upload-history">
               {uploads.length === 0 ? (
                 <div className="empty-box">暂无上传记录</div>
               ) : (
@@ -173,15 +182,13 @@ export default function UploadPage() {
                           {u.size_kb.toFixed(2)} KB · {u.uploadedAt}
                         </span>
                       </div>
-                      <Badge variant={u.message === '成功' ? 'success' : 'warning'}>
-                        {u.message}
-                      </Badge>
+                      <Tag color={u.message === '成功' ? 'success' : 'warning'}>{u.message}</Tag>
                     </li>
                   ))}
                 </ul>
               )}
-            </ScrollArea>
-          </CardContent>
+            </div>
+          </div>
         </Card>
       </div>
     </div>

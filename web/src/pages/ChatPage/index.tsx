@@ -1,3 +1,5 @@
+import { Alert, Button, Card, Input, Modal, Tag } from 'antd'
+import { Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
 
@@ -5,28 +7,10 @@ import { deleteChatSession, getChatSessionMessages, getChatSessions } from '../.
 import { streamChat } from '../../api/chat'
 import { getKnowledgeDocuments } from '../../api/knowledge'
 import type { ChatHistoryMessage, ChatSessionSummary } from '../../api/chat-history'
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../../components/ui/alert-dialog'
-import { Badge } from '../../components/ui/badge'
-import { Button } from '../../components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../../components/ui/card'
-import { ScrollArea } from '../../components/ui/scroll-area'
-import { Textarea } from '../../components/ui/textarea'
 
 type ChatRole = 'user' | 'ai'
 type StatusTone = 'default' | 'success' | 'warning' | 'danger' | 'outline'
+const { TextArea } = Input
 
 interface ChatMessage {
   id: string
@@ -105,6 +89,21 @@ function getSystemState(
     label: '不可提问',
     tone: 'outline',
     description: '当前知识库为空，请先上传至少一份文档。',
+  }
+}
+
+function getStatusTagColor(tone: StatusTone) {
+  switch (tone) {
+    case 'success':
+      return 'success'
+    case 'warning':
+      return 'warning'
+    case 'danger':
+      return 'error'
+    case 'default':
+      return 'processing'
+    default:
+      return 'default'
   }
 }
 
@@ -343,29 +342,31 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="page page-chat">
+    <div className="page page-chat page-antd">
       <header className="page-header">
         <div>
-          <h2 className="page-title">对话</h2>
-          <p className="page-description">只要知识库中已有文档，就可以直接进行问答。</p>
+          <h2 className="page-title">PlayGround</h2>
         </div>
-        <Badge variant={systemState.tone}>{systemState.label}</Badge>
+        <Tag color={getStatusTagColor(systemState.tone)}>{systemState.label}</Tag>
       </header>
 
       <div className="chat-layout">
-        <Card className="panel chat-panel-main">
-          <CardHeader>
-            <CardTitle>对话窗口</CardTitle>
-            <CardDescription>
+        <Card
+          className="panel chat-panel-main antd-panel-card chat-panel-main--antd"
+          styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' } }}
+        >
+          <div className="page-antd-card-header">
+            <div className="page-antd-card-title">对话窗口</div>
+            <div className="page-antd-card-description">
               {canChat
                 ? '知识库中已有文档，可以直接提问。'
                 : knowledgeLoading
                   ? '正在读取知识库状态。'
                   : '当前知识库为空，请先前往文档上传页面。'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="panel-content panel-content--chat">
-            <ScrollArea className="message-list" ref={messagesRef}>
+            </div>
+          </div>
+          <div className="panel-content panel-content--chat page-antd-card-body chat-panel-main__body">
+            <div className="message-list" ref={messagesRef}>
               {messagesLoading ? (
                 <div className="empty-box">正在加载会话消息...</div>
               ) : messages.length === 0 ? (
@@ -384,15 +385,15 @@ export default function ChatPage() {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
-            {chatError && <div className="ui-alert ui-alert--error">{chatError}</div>}
-            {messagesError && <div className="ui-alert ui-alert--error">{messagesError}</div>}
-            {knowledgeError && <div className="ui-alert ui-alert--error">{knowledgeError}</div>}
+            {chatError && <Alert type="error" showIcon message={chatError} />}
+            {messagesError && <Alert type="error" showIcon message={messagesError} />}
+            {knowledgeError && <Alert type="error" showIcon message={knowledgeError} />}
 
             <form className="composer-simple" onSubmit={handleSend}>
               <div className="composer-simple__shell">
-                <Textarea
+                <TextArea
                   className="composer-simple__textarea"
                   placeholder={
                     canChat
@@ -409,8 +410,7 @@ export default function ChatPage() {
                 />
                 {chatting ? (
                   <Button
-                    type="button"
-                    variant="secondary"
+                    htmlType="button"
                     onClick={handleStop}
                     className="composer-simple__submit composer-simple__submit--stop"
                   >
@@ -418,7 +418,8 @@ export default function ChatPage() {
                   </Button>
                 ) : (
                   <Button
-                    type="submit"
+                    htmlType="submit"
+                    type="primary"
                     disabled={!canChat || !input.trim()}
                     className="composer-simple__submit"
                   >
@@ -427,29 +428,25 @@ export default function ChatPage() {
                 )}
               </div>
             </form>
-          </CardContent>
+          </div>
         </Card>
 
-        <Card className="panel chat-history-panel">
-          <CardHeader>
-            <CardTitle>历史会话</CardTitle>
-            <CardDescription>{systemState.description}</CardDescription>
-          </CardHeader>
-          <CardContent className="panel-content">
-            <Button type="button" variant="secondary" onClick={handleCreateSession} disabled={chatting}>
+        <Card
+          className="panel chat-history-panel antd-panel-card"
+          styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' } }}
+        >
+          <div className="page-antd-card-header">
+            <div className="page-antd-card-title">历史会话</div>
+            <div className="page-antd-card-description">{systemState.description}</div>
+          </div>
+          <div className="panel-content page-antd-card-body">
+            <Button onClick={handleCreateSession} disabled={chatting}>
               新建会话
             </Button>
 
-            {sessionsError && <div className="ui-alert ui-alert--error">{sessionsError}</div>}
+            {sessionsError && <Alert type="error" showIcon message={sessionsError} />}
 
-            <div className="summary-list summary-list--single">
-              <div className="summary-item">
-                <span>当前会话</span>
-                <strong>{activeSessionId ? `${activeSessionId.slice(0, 8)}...` : '未选择'}</strong>
-              </div>
-            </div>
-
-            <ScrollArea className="upload-history">
+            <div className="upload-history">
               {sessionsLoading ? (
                 <div className="empty-box">正在加载历史会话...</div>
               ) : sessions.length === 0 ? (
@@ -474,73 +471,49 @@ export default function ChatPage() {
                           <strong>{session.title}</strong>
                           <span>{formatSessionUpdatedAt(session.updated_at)}</span>
                         </button>
-                        <button
-                          type="button"
+                        <Button
                           className="session-list-item__delete"
+                          type="text"
+                          danger
                           aria-label={`删除会话 ${session.title}`}
                           onClick={() => setSessionPendingDelete(session)}
                           disabled={chatting || deletingSessionId === session.session_id}
                         >
-                          <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path
-                              d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h2v8H7V9Zm4 0h2v8h-2V9Zm4 0h2v8h-2V9ZM6 7h12l-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7Z"
-                              fill="currentColor"
-                            />
-                          </svg>
-                        </button>
+                          <Trash2 size={18} strokeWidth={2.15} aria-hidden="true" />
+                        </Button>
                       </div>
                     </li>
                   ))}
                 </ul>
               )}
-            </ScrollArea>
-          </CardContent>
+            </div>
+          </div>
         </Card>
       </div>
 
-      <AlertDialog
+      <Modal
         open={sessionPendingDelete !== null}
-        onOpenChange={(open) => {
-          if (!open && !deletingSessionId) {
+        title="删除历史会话"
+        okText={deletingSessionId ? '删除中...' : '确认删除'}
+        cancelText="取消"
+        onCancel={() => {
+          if (!deletingSessionId) {
             setSessionPendingDelete(null)
           }
         }}
+        onOk={() => void handleDeleteSession()}
+        confirmLoading={Boolean(deletingSessionId)}
+        okButtonProps={{ danger: true, className: 'session-delete-confirm' }}
+        cancelButtonProps={{ disabled: Boolean(deletingSessionId) }}
+        maskClosable={!deletingSessionId}
+        destroyOnHidden
       >
-        <AlertDialogContent
-          onPointerDownOutside={() => {
-            if (!deletingSessionId) {
-              setSessionPendingDelete(null)
-            }
-          }}
-        >
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除历史会话</AlertDialogTitle>
-            <AlertDialogDescription>
-              {sessionPendingDelete
-                ? `确认删除“${sessionPendingDelete.title}”吗？删除后该会话消息将不可恢复。`
-                : '确认删除该会话吗？'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setSessionPendingDelete(null)}
-              disabled={Boolean(deletingSessionId)}
-            >
-              取消
-            </Button>
-            <Button
-              type="button"
-              className="session-delete-confirm"
-              onClick={() => void handleDeleteSession()}
-              disabled={Boolean(deletingSessionId)}
-            >
-              {deletingSessionId ? '删除中...' : '确认删除'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <p className="page-antd-modal-text">
+          {sessionPendingDelete
+            ? `确认删除“${sessionPendingDelete.title}”吗？删除后该会话消息将不可恢复。`
+            : '确认删除该会话吗？'}
+        </p>
+      </Modal>
     </div>
   )
 }

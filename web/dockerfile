@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml* ./
+
+# 装依赖
+RUN npm install -g pnpm && pnpm install
+
+COPY . .
+
+# 构建
+RUN pnpm build
+
+# 启动
+CMD ["pnpm", "dev"]

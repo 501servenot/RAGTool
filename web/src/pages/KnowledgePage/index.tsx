@@ -1,27 +1,12 @@
+import { Alert, Button, Card, Modal, Statistic, Table, Tag } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
+import type { TableColumnsType } from 'antd'
 
 import {
   deleteKnowledgeDocument,
   getKnowledgeDocuments,
 } from '../../api/knowledge'
 import type { KnowledgeBaseSummaryResponse } from '../../api/knowledge'
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../../components/ui/alert-dialog'
-import { Badge } from '../../components/ui/badge'
-import { Button } from '../../components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../../components/ui/card'
 
 const INITIAL_DATA: KnowledgeBaseSummaryResponse = {
   document_count: 0,
@@ -33,6 +18,7 @@ interface PendingDeleteDocument {
   documentId: string
   filename: string
 }
+type KnowledgeDocument = KnowledgeBaseSummaryResponse['documents'][number]
 
 export default function KnowledgePage() {
   const [data, setData] = useState<KnowledgeBaseSummaryResponse>(INITIAL_DATA)
@@ -82,141 +68,126 @@ export default function KnowledgePage() {
     }
   }
 
+  const columns: TableColumnsType<KnowledgeDocument> = [
+    {
+      title: '文件名',
+      dataIndex: 'filename',
+      key: 'filename',
+      render: (_, doc) => (
+        <div className="table-file">
+          <strong>{doc.filename}</strong>
+          <span>{doc.document_id}</span>
+        </div>
+      ),
+    },
+    {
+      title: '切片数',
+      dataIndex: 'chunk_count',
+      key: 'chunk_count',
+      width: 120,
+      render: (value: number) => <Tag>{value}</Tag>,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'create_time',
+      key: 'create_time',
+      render: (value?: string) => value || '-',
+    },
+    {
+      title: '操作人',
+      dataIndex: 'operator',
+      key: 'operator',
+      render: (value?: string) => value || '-',
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 120,
+      render: (_, doc) => (
+        <Button
+          disabled={deletingId === doc.document_id}
+          onClick={() =>
+            setPendingDelete({
+              documentId: doc.document_id,
+              filename: doc.filename,
+            })
+          }
+        >
+          {deletingId === doc.document_id ? '删除中...' : '删除'}
+        </Button>
+      ),
+    },
+  ]
+
   return (
-    <div className="page">
+    <div className="page page-antd">
       <header className="page-header">
         <div>
           <h2 className="page-title">知识库</h2>
           <p className="page-description">查看当前知识库中的文档，并支持删除。</p>
         </div>
-        <Button variant="secondary" onClick={() => void loadData()} disabled={loading}>
+        <Button onClick={() => void loadData()} disabled={loading}>
           刷新
         </Button>
       </header>
 
       <div className="knowledge-summary">
-        <Card className="panel">
-          <CardHeader>
-            <CardTitle>文档数量</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">{data.document_count}</div>
-          </CardContent>
+        <Card className="panel antd-panel-card">
+          <Statistic title="文档数量" value={data.document_count} className="page-statistic" />
         </Card>
-        <Card className="panel">
-          <CardHeader>
-            <CardTitle>切片数量</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="stat-value">{data.chunk_count}</div>
-          </CardContent>
+        <Card className="panel antd-panel-card">
+          <Statistic title="切片数量" value={data.chunk_count} className="page-statistic" />
         </Card>
       </div>
 
-      <Card className="panel">
-        <CardHeader>
-          <CardTitle>文档列表</CardTitle>
-          <CardDescription>按文件维度展示当前知识库内容。</CardDescription>
-        </CardHeader>
-        <CardContent className="panel-content">
-          {error && <div className="ui-alert ui-alert--error">{error}</div>}
+      <Card className="panel antd-panel-card" styles={{ body: { padding: 0 } }}>
+        <div className="page-antd-card-header">
+          <div className="page-antd-card-title">文档列表</div>
+          <div className="page-antd-card-description">按文件维度展示当前知识库内容。</div>
+        </div>
+        <div className="panel-content page-antd-card-body">
+          {error && <Alert type="error" showIcon message={error} />}
 
           {loading ? (
             <div className="empty-box">加载中...</div>
           ) : data.documents.length === 0 ? (
             <div className="empty-box">当前知识库没有文档</div>
           ) : (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>文件名</th>
-                    <th>切片数</th>
-                    <th>创建时间</th>
-                    <th>操作人</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.documents.map((doc) => (
-                    <tr key={doc.document_id}>
-                      <td>
-                        <div className="table-file">
-                          <strong>{doc.filename}</strong>
-                          <span>{doc.document_id}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <Badge variant="outline">{doc.chunk_count}</Badge>
-                      </td>
-                      <td>{doc.create_time || '-'}</td>
-                      <td>{doc.operator || '-'}</td>
-                      <td>
-                        <Button
-                          variant="secondary"
-                          disabled={deletingId === doc.document_id}
-                          onClick={() =>
-                            setPendingDelete({
-                              documentId: doc.document_id,
-                              filename: doc.filename,
-                            })
-                          }
-                        >
-                          {deletingId === doc.document_id ? '删除中...' : '删除'}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              className="page-knowledge-table"
+              columns={columns}
+              dataSource={data.documents}
+              pagination={false}
+              rowKey="document_id"
+              scroll={{ x: 'max-content' }}
+            />
           )}
-        </CardContent>
+        </div>
       </Card>
 
-      <AlertDialog
+      <Modal
         open={pendingDelete !== null}
-        onOpenChange={(open) => {
-          if (!open && !deletingId) {
+        title="删除知识库文档"
+        okText={deletingId ? '删除中...' : '确认删除'}
+        cancelText="取消"
+        onCancel={() => {
+          if (!deletingId) {
             setPendingDelete(null)
           }
         }}
+        onOk={() => pendingDelete && void handleDelete(pendingDelete.documentId)}
+        confirmLoading={Boolean(deletingId)}
+        okButtonProps={{ danger: true, className: 'session-delete-confirm' }}
+        cancelButtonProps={{ disabled: Boolean(deletingId) }}
+        maskClosable={!deletingId}
+        destroyOnHidden
       >
-        <AlertDialogContent
-          onPointerDownOutside={() => {
-            if (!deletingId) {
-              setPendingDelete(null)
-            }
-          }}
-        >
-          <AlertDialogHeader>
-            <AlertDialogTitle>删除知识库文档</AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingDelete
-                ? `确认删除“${pendingDelete.filename}”吗？删除后对应切片会从知识库中移除。`
-                : '确认删除该文档吗？'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setPendingDelete(null)}
-              disabled={Boolean(deletingId)}
-            >
-              取消
-            </Button>
-            <Button
-              type="button"
-              className="session-delete-confirm"
-              onClick={() => pendingDelete && void handleDelete(pendingDelete.documentId)}
-              disabled={Boolean(deletingId)}
-            >
-              {deletingId ? '删除中...' : '确认删除'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <p className="page-antd-modal-text">
+          {pendingDelete
+            ? `确认删除“${pendingDelete.filename}”吗？删除后对应切片会从知识库中移除。`
+            : '确认删除该文档吗？'}
+        </p>
+      </Modal>
     </div>
   )
 }

@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "@heroui/styles"; 
+
 :root {
   --background: #08090a;
   --background-elevated: #0f1011;
