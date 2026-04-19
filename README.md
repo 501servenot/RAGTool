@@ -1,17 +1,36 @@
 # RAGTool
 
-> 提示：请自行配置Chat,embedding,Rerank,Rewrite模型base-url和API-key，默认使用阿里云百炼平台的DashScope模型
+> 一个带 Web 控制台的 RAG 示例项目，覆盖知识库入库、检索问答、配置管理，以及基于 `ragas` 的离线评估能力。
 
-这一个前后端分离的 RAG 示例项目：
+## 项目简介
 
-- `RAG/`：FastAPI 后端，负责知识库入库、检索、rerank 和对话
-- `web/`：Vite + React 前端
-- `storage/`：运行时数据目录（知识库、聊天历史、md5 索引）
-- `scripts/`：初始化和启动脚手架
+`RAGTool` 是一个前后端分离的 RAG Demo，目标不是只做“上传文档 + 检索回答”的最小闭环，而是把一套更完整的 RAG 工作流落到可直接操作的控制台里，包括：
 
-## 项目界面预览
+- 文档上传与知识库管理
+- 语义切分与向量化入库
+- Query Rewrite、Top-K 检索、Rerank、邻块补全
+- 多轮对话与历史会话管理
+- 运行时模型与参数配置
+- 基于 `ragas` 的评估集生成与离线评估
 
-![RAG Console 界面预览](docs/images/playground.png)
+代码结构如下：
+
+- `RAG/`：FastAPI 后端，负责知识库、RAG 编排、评估任务与接口
+- `web/`：Vite + React 前端，提供 Playground、上传、知识库、配置、评估中心
+- `storage/`：运行时数据目录，保存 Chroma、聊天历史、评估结果等
+- `scripts/`：启动、初始化脚本
+
+## 功能概览
+
+当前项目主要提供这几类能力：
+
+- **Playground**：基于当前知识库进行问答，支持会话历史与流式输出
+- **Upload**：上传 `txt / md / pdf` 文档并写入知识库
+- **KnowledgeBase**：查看和删除已入库文档
+- **Settings**：配置对话模型、Embedding、Rerank、Rewrite 及检索参数
+- **Evaluate**：生成评估数据集，发起 `ragas` 评估任务，查看 Faithfulness、回答相关性、召回准确率、上下文召回率等关键指标
+
+## 界面预览
 
 ### Playground
 
@@ -25,18 +44,21 @@
 
 ![Upload 预览](docs/images/upload.png)
 
+### Evaluate
+
+![Evaluate 预览](docs/images/evaluate.png)
 
 ## RAG 架构概览
 
-这个项目的 RAG 框架可以概括为：
+这个项目的主链路由以下部分组成：
 
 - 前端：`Vite + React`
 - 后端：`FastAPI`
 - 向量库：`Chroma`
-- Embedding / 对话 / Rerank：`DashScope / 通义模型`
-- 历史消息：基于文件的会话存储
+- 模型层：`DashScope` 或 `OpenAI Compatible`
+- 历史消息：文件存储
 
-它不是一个“只做向量检索”的简单问答系统，而是包含了这些关键环节：
+它包含的关键环节包括：
 
 - 文档上传与去重
 - 语义感知切分
@@ -45,9 +67,9 @@
 - Top-K 召回
 - Rerank
 - 命中 chunk 的前后文补齐
-- 基于上下文和会话历史的回答生成
+- 基于上下文与历史消息的回答生成
 
-### 整体流程图
+### 主链路流程图
 
 ```mermaid
 flowchart TD
@@ -55,7 +77,7 @@ flowchart TD
     webUi --> chatApi[FastAPI Chat API]
     chatApi --> retrieveDocs[原始问题 Chroma TopK 检索]
     retrieveDocs --> rerankDocs[Rerank 重排]
-    rerankDocs --> qualityGate{检索评分是否足够高?}
+    rerankDocs --> qualityGate{检索质量是否足够高}
     qualityGate -->|是| expandContext[补充命中 Chunk 前后文]
     qualityGate -->|否| rewriteQuery[结合历史做 Query Rewrite]
     rewriteQuery --> retrieveDocsRewritten[改写后再次检索]
@@ -63,7 +85,7 @@ flowchart TD
     rerankDocsRewritten --> compareResults[比较原始结果与改写结果]
     compareResults --> expandContext
     expandContext --> promptBuilder[组装 Prompt 与历史消息]
-    promptBuilder --> llmAnswer[通义聊天模型生成回答]
+    promptBuilder --> llmAnswer[聊天模型生成回答]
     llmAnswer --> streamResponse[流式或非流式返回]
     streamResponse --> webUi
 
@@ -74,36 +96,63 @@ flowchart TD
     chromaStore --> retrieveDocs
 ```
 
-### 入库链路
-
-知识库写入时，后端会先读取上传文件内容，然后进行更偏语义的切分，而不是只按固定字符长度硬切。之后每个 chunk 会带上 `document_id`、`source`、`chunk_index` 等 metadata 写入 Chroma，便于后续检索、补邻块和文档管理。
-
-可以把入库过程理解成：
+### 一句话理解主流程
 
 ```text
-上传文件 -> 提取文本 -> 语义切分 -> Embedding -> 写入 Chroma
+用户问题 -> 检索 -> 重排 -> 低分时改写重检 -> 补上下文 -> 生成答案
 ```
 
-### 查询链路
+## RAG 评估能力
 
-用户发起提问后，后端会优先使用原始问题进入检索链路，而不是默认先 rewrite。整体流程如下：
+项目现在内置了一套离线评估工具，核心目标是回答两个问题：
 
-1. 先用原始问题做向量召回
-2. 对召回结果做 rerank，并根据 `rerank_score` 判断结果质量
-3. 如果分数足够高，直接使用当前结果
-4. 如果分数不高，再结合最近会话历史做 Query Rewrite，并重新检索与 rerank
-5. 比较原始检索结果和 rewrite 后结果，选择更优的一组
-6. 对最终命中的 chunk 补齐前后相邻 chunk
-7. 把整理后的上下文连同历史消息一起送给聊天模型
-8. 返回最终回答
+1. 你的 RAG 回答是否真的忠于检索到的上下文？
+2. 当前参数组合是否让回答和召回质量更稳定？
 
-这里有一个很重要的设计点：
+### 评估功能包含什么
 
-- **先 rerank，再补前后 chunk**
+- 使用 LLM 从知识库文档生成可复用的评估数据集
+- 基于已有数据集发起异步评估任务
+- 使用 `ragas` 对 RAG 输出进行多指标评估
+- 在前端“评估中心”中查看任务状态、指标卡片和样本明细
 
-也就是说，相邻 chunk 的作用是补足上下文，而不是参与主排序，这样可以尽量减少噪声对排序结果的干扰。
+### 当前支持的关键指标
 
-### 核心模块分工
+- `Faithfulness`：回答是否忠于上下文
+- `Answer Relevancy`：回答与问题的相关性
+- `Context Precision`：召回上下文的准确率
+- `Context Recall`：召回上下文的覆盖率
+- `Success Rate`：评估任务中成功完成的样本比例
+
+### 评估流程图
+
+```mermaid
+flowchart TD
+    knowledgeBase[知识库文档] --> datasetTask[创建评估集任务]
+    datasetTask --> datasetGenerator[LLM 生成评估样本]
+    datasetGenerator --> datasetStore[保存评估数据集]
+
+    datasetStore --> runTask[创建评估任务]
+    runTask --> runtimeFactory[创建隔离评估运行时]
+    runtimeFactory --> ragInvoke[逐样本调用 RAG 链路]
+    ragInvoke --> ragasRunner[ragas 指标评估]
+    ragasRunner --> runStore[保存运行结果]
+    runStore --> evaluateUi[前端评估中心展示]
+```
+
+### 评估输出包含什么
+
+每次评估完成后，前端会展示：
+
+- 任务进度与状态
+- 数据集信息与样本数
+- 关键指标卡片
+- 评估配置快照
+- 每个样本的问题、回答、参考答案、检索上下文、指标得分、错误信息
+
+## 核心模块分工
+
+### 主 RAG 链路
 
 - `RAG/app/services/knowledge_base.py`：知识库入库、分块、去重、删除
 - `RAG/app/utils/semantic_chunker.py`：语义感知切分
@@ -113,13 +162,14 @@ flowchart TD
 - `RAG/app/services/rag.py`：RAG 主编排链路
 - `RAG/app/memory/historymessage.py`：会话历史文件存储
 
-### 一句话理解这个项目
+### 评估链路
 
-这个项目的回答链路可以简化理解为：
-
-```text
-用户问题 -> 检索 -> 重排 -> 低分时改写重检 -> 补上下文 -> 生成答案
-```
+- `RAG/evaluate/dataset_generator.py`：根据知识库内容构建评估样本
+- `RAG/evaluate/ragas_runner.py`：执行 `ragas` 评估
+- `RAG/evaluate/task_manager.py`：异步任务状态流转
+- `RAG/evaluate/repository.py`：评估数据集、任务和运行结果持久化
+- `RAG/evaluate/runtime_factory.py`：为评估任务构建隔离运行时，避免污染在线问答
+- `RAG/app/api/v1/endpoints/evaluate.py`：评估相关 FastAPI 接口
 
 ## 目录结构
 
@@ -127,6 +177,7 @@ flowchart TD
 demo01/
 ├── RAG/                  # 后端源码
 ├── web/                  # 前端源码
+├── docs/                 # 文档与界面截图
 ├── scripts/              # 初始化 / 启动脚本
 ├── storage/              # 运行时数据（默认不提交）
 ├── .env.example          # 配置模板
@@ -165,13 +216,18 @@ python scripts/bootstrap.py
 
 ### 3. 填写配置
 
-打开根目录 `.env`，至少填写：
+项目默认优先读取根目录 `.env`，同时兼容旧的 `RAG/.env`。
+
+你至少需要为所选模型提供对应的 `api_key`。如果你使用：
+
+- **DashScope**：填写 `DASHSCOPE_API_KEY`
+- **OpenAI Compatible**：在“Settings”页面里填写对应模型的 `base_url` 和 `api_key`
+
+示例：
 
 ```env
-DASHSCOPE_API_KEY=你的密钥
+DASHSCOPE_API_KEY=your_dashscope_key
 ```
-
-其他配置已经在 `.env.example` 中给出了默认值，可以按需调整。
 
 ## 启动项目
 
@@ -194,18 +250,75 @@ python scripts/start_backend.py
 python scripts/start_frontend.py
 ```
 
-## 配置说明
+## 使用说明
 
-项目默认优先读取根目录 `.env`，同时兼容旧的 `RAG/.env`。
+### 1. 上传知识库文档
 
-常用配置：
+进入 `Upload` 页面，上传 `txt / md / pdf` 文件。后端会自动完成：
 
-- `DASHSCOPE_API_KEY`：DashScope API Key
-- `EMBEDDING_MODEL_NAME`：Embedding 模型
+```text
+上传文件 -> 解析文本 -> 语义切分 -> Embedding -> 写入 Chroma
+```
+
+### 2. 在 Playground 中提问
+
+进入 `Playground` 页面开始提问，系统会基于知识库内容执行检索、重排、改写和回答生成。
+
+### 3. 在 Evaluate 中做离线评估
+
+进入 `Evaluate` 页面：
+
+1. 先选择知识库文档并生成评估数据集
+2. 再选择评估数据集发起评估任务
+3. 等待任务完成后查看指标卡片和样本明细
+
+适合拿来评估：
+
+- 不同 `Top-K`
+- 不同 `Rerank` 开关
+- 不同 `Rewrite` 开关
+- 不同模型组合
+
+## 常用配置项
+
+常见可调参数包括：
+
 - `CHAT_MODEL_NAME`：聊天模型
-- `RERANK_ENABLED`：是否开启 rerank
-- `RERANK_MODEL_NAME`：rerank 模型名
+- `EMBEDDING_MODEL_NAME`：Embedding 模型
+- `RERANK_MODEL_NAME`：Rerank 模型
 - `RETRIEVE_TOP_K`：初始召回条数
 - `RETRIEVAL_NEIGHBOR_CHUNKS`：命中 chunk 前后补充块数
+- `RERANK_ENABLED`：是否开启 Rerank
+- `REWRITE_ENABLED`：是否开启 Query Rewrite
 - `PERSIST_DIRECTORY`：Chroma 数据目录
 - `CHAT_HISTORY_DIRECTORY`：聊天历史目录
+- `EVALUATION_STORAGE_DIRECTORY`：评估数据、运行结果目录
+
+## 依赖说明
+
+后端主要依赖包括：
+
+- `fastapi`
+- `langchain-core`
+- `langchain-community`
+- `langchain-openai`
+- `langchain-chroma`
+- `dashscope`
+- `ragas`
+- `datasets`
+
+## 适合什么场景
+
+这个项目适合作为：
+
+- RAG 学习项目
+- 检索问答原型
+- RAG 参数实验台
+- 带评估闭环的知识库问答 Demo
+
+如果你希望继续扩展，也很适合往这些方向演进：
+
+- 多数据集对比评估
+- 多次运行结果对比
+- 更细粒度的评估报告导出
+- 在线问答与离线评估联动分析

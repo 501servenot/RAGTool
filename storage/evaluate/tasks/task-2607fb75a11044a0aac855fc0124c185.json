@@ -1,0 +1,12 @@
+{
+  "task_id": "task-2607fb75a11044a0aac855fc0124c185",
+  "task_type": "generate_dataset",
+  "status": "failed",
+  "progress": 0.4,
+  "message": "结构化输出结果格式不受支持",
+  "resource_id": "dataset-52678807ae754aff9e94b0e206a38a94",
+  "result_ref": null,
+  "created_at": "2026-04-19T12:12:33.367533",
+  "updated_at": "2026-04-19T12:12:46.915630",
+  "error": "结构化输出结果格式不受支持"
+}

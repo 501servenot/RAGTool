@@ -7,6 +7,7 @@ import {
   getKnowledgeDocuments,
 } from '../../api/knowledge'
 import type { KnowledgeBaseSummaryResponse } from '../../api/knowledge'
+import './index.css'
 
 const INITIAL_DATA: KnowledgeBaseSummaryResponse = {
   document_count: 0,

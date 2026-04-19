@@ -1,0 +1,12 @@
+{
+  "task_id": "task-80673a5d77f949c5b839cb55976c9d69",
+  "task_type": "generate_dataset",
+  "status": "failed",
+  "progress": 0.4,
+  "message": "Invalid control character at: line 6 column 10 (char 260)",
+  "resource_id": "dataset-1004be2b9d1d42c59a9331465ced2ad6",
+  "result_ref": null,
+  "created_at": "2026-04-19T12:03:14.413704",
+  "updated_at": "2026-04-19T12:03:50.951440",
+  "error": "Invalid control character at: line 6 column 10 (char 260)"
+}

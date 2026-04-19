@@ -6,10 +6,21 @@ from datetime import datetime
 from typing import Any, Awaitable, Callable
 from uuid import uuid4
 
+from pydantic import BaseModel, Field
+
 from evaluate.models import EvaluationDataset, EvaluationSample
 
 
 SampleBuilder = Callable[..., Awaitable[dict[str, Any]]]
+
+
+class GeneratedEvaluationSample(BaseModel):
+    question: str = Field(..., description="基于文档片段生成的评估问题")
+    reference_answer: str = Field(..., description="问题对应的参考答案")
+    reference_contexts: list[str] = Field(
+        default_factory=list, description="支撑参考答案的上下文片段列表"
+    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="样本附加元数据")
 
 
 class EvaluationDatasetGenerator:
@@ -95,17 +106,24 @@ class EvaluationDatasetGenerator:
     ) -> dict[str, Any]:
         if self.chat_model is None:
             raise ValueError("未配置用于数据集生成的聊天模型")
+        if not hasattr(self.chat_model, "with_structured_output"):
+            raise ValueError("当前评估集生成模型不支持结构化输出")
 
         prompt = (
-            "你是 RAG 评估数据集生成器。请基于给定文档片段，输出一条评估样本 JSON。"
-            '字段必须包含 question、reference_answer、reference_contexts、metadata。'
-            "不要输出 markdown 代码块。\n"
+            "你是 RAG 评估数据集生成器。"
+            "请只返回一条结构化评估样本，字段包含 question、reference_answer、reference_contexts、metadata。"
+            "question 要清晰具体，reference_answer 要忠于文档片段，"
+            "reference_contexts 只保留最关键的原文片段。\n"
             f"文件名: {document.get('filename', '')}\n"
             f"文档ID: {document.get('document_id', '')}\n"
             f"片段内容:\n{chunk.get('text', '')}\n"
         )
-        content = await self._invoke_model(prompt)
-        parsed = self._load_json(content)
+        runnable = self.chat_model.with_structured_output(
+            GeneratedEvaluationSample,
+            method="function_calling",
+            include_raw=True,
+        )
+        parsed = await self._invoke_structured_model(runnable, prompt)
         return {
             "question": str(parsed["question"]).strip(),
             "reference_answer": str(parsed["reference_answer"]).strip(),
@@ -115,18 +133,68 @@ class EvaluationDatasetGenerator:
             "metadata": parsed.get("metadata", {}),
         }
 
-    async def _invoke_model(self, prompt: str) -> str:
-        if hasattr(self.chat_model, "ainvoke"):
-            response = await self.chat_model.ainvoke(prompt)
+    @staticmethod
+    async def _invoke_structured_model(runnable, prompt: str) -> dict[str, Any]:
+        if hasattr(runnable, "ainvoke"):
+            response = await runnable.ainvoke(prompt)
         else:
-            response = await asyncio.to_thread(self.chat_model.invoke, prompt)
+            response = await asyncio.to_thread(runnable.invoke, prompt)
 
-        if hasattr(response, "content"):
-            return str(response.content)
-        return str(response)
+        return EvaluationDatasetGenerator._coerce_structured_response(response)
 
     @staticmethod
-    def _load_json(raw: str) -> dict[str, Any]:
+    def _coerce_structured_response(response) -> dict[str, Any]:
+        required_keys = {"question", "reference_answer", "reference_contexts", "metadata"}
+
+        if isinstance(response, BaseModel):
+            return response.model_dump(mode="json")
+
+        if isinstance(response, dict) and required_keys.issubset(response.keys()):
+            return response
+
+        if isinstance(response, dict):
+            parsed = response.get("parsed")
+            if parsed is not None:
+                return EvaluationDatasetGenerator._coerce_structured_response(parsed)
+
+            raw = response.get("raw")
+            if raw is not None:
+                return EvaluationDatasetGenerator._coerce_structured_response(raw)
+
+            parsing_error = response.get("parsing_error")
+            if parsing_error is not None:
+                raise ValueError(f"结构化输出解析失败: {parsing_error}")
+
+        tool_calls = getattr(response, "tool_calls", None)
+        if isinstance(tool_calls, list) and tool_calls:
+            for tool_call in tool_calls:
+                args = tool_call.get("args")
+                if isinstance(args, dict):
+                    return args
+                if isinstance(args, str):
+                    return json.loads(args)
+
+        additional_kwargs = getattr(response, "additional_kwargs", None)
+        if isinstance(additional_kwargs, dict):
+            raw_tool_calls = additional_kwargs.get("tool_calls")
+            if isinstance(raw_tool_calls, list) and raw_tool_calls:
+                function = raw_tool_calls[0].get("function", {})
+                arguments = function.get("arguments")
+                if isinstance(arguments, dict):
+                    return arguments
+                if isinstance(arguments, str):
+                    return json.loads(arguments)
+
+        content = getattr(response, "content", None)
+        if isinstance(content, str) and content.strip():
+            return EvaluationDatasetGenerator._load_json_from_text(content)
+
+        raise ValueError(
+            f"结构化输出结果格式不受支持: {type(response).__name__}"
+        )
+
+    @staticmethod
+    def _load_json_from_text(raw: str) -> dict[str, Any]:
         content = raw.strip()
         if content.startswith("```"):
             lines = [line for line in content.splitlines() if not line.startswith("```")]

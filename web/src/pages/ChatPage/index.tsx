@@ -7,6 +7,7 @@ import { deleteChatSession, getChatSessionMessages, getChatSessions } from '../.
 import { streamChat } from '../../api/chat'
 import { getKnowledgeDocuments } from '../../api/knowledge'
 import type { ChatHistoryMessage, ChatSessionSummary } from '../../api/chat-history'
+import './index.css'
 
 type ChatRole = 'user' | 'ai'
 type StatusTone = 'default' | 'success' | 'warning' | 'danger' | 'outline'

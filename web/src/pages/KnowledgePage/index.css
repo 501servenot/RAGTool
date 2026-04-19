@@ -1,0 +1,11 @@
+.knowledge-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .knowledge-summary {
+    grid-template-columns: 1fr;
+  }
+}

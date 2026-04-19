@@ -38,6 +38,7 @@ import { getKnowledgeDocuments } from '../../api/knowledge'
 import type { KnowledgeDocument } from '../../api/knowledge'
 import MetricCards from './components/MetricCards'
 import SampleResultsTable from './components/SampleResultsTable'
+import './index.css'
 
 const ACTIVE_TASK_STORAGE_KEY = 'rag_evaluate_task_id'
 const ACTIVE_RUN_STORAGE_KEY = 'rag_evaluate_run_id'
@@ -463,9 +464,6 @@ export default function EvaluatePage() {
       <header className="page-header">
         <div>
           <h2 className="page-title">评估中心</h2>
-          <p className="page-description">
-            使用 antd 工作台查看评估数据集、发起 ragas 评估任务，并展示召回准确率、回答相关性等关键指标。
-          </p>
         </div>
         <Space wrap>
           {activeTask ? (
@@ -703,7 +701,7 @@ export default function EvaluatePage() {
               </div>
             ) : (
               <Table
-                className="page-knowledge-table"
+                className="page-knowledge-table evaluate-table-flat"
                 columns={datasetColumns}
                 dataSource={datasets}
                 pagination={false}

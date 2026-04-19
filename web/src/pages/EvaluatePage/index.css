@@ -1,0 +1,222 @@
+.evaluate-table-flat {
+  border-radius: 0;
+}
+
+.evaluate-table-flat .ant-table,
+.evaluate-table-flat .ant-table-container,
+.evaluate-table-flat .ant-table-content,
+.evaluate-table-flat .ant-table-header,
+.evaluate-table-flat table {
+  border-radius: 0 !important;
+}
+
+.evaluate-table-flat .ant-table-thead > tr > th,
+.evaluate-table-flat .ant-table-tbody > tr > td {
+  border-radius: 0 !important;
+}
+
+.evaluate-action-grid,
+.evaluate-content-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  min-height: 0;
+}
+
+.evaluate-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.evaluate-inline-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.evaluate-inline-fields--compact {
+  align-items: end;
+}
+
+.evaluate-number-input.ant-input-number {
+  width: 100%;
+}
+
+.evaluate-action-grid .ant-input-outlined,
+.evaluate-action-grid .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector,
+.evaluate-action-grid .ant-input-number,
+.evaluate-action-grid .ant-input-number .ant-input-number-input,
+.evaluate-content-grid .ant-descriptions,
+.evaluate-content-grid .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector {
+  color: var(--foreground);
+}
+
+.evaluate-action-grid .ant-input-outlined,
+.evaluate-action-grid .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector,
+.evaluate-action-grid .ant-input-number {
+  border-color: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+}
+
+.evaluate-action-grid .ant-input-outlined,
+.evaluate-action-grid .ant-input-number {
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+.evaluate-action-grid .ant-select-multiple .ant-select-selector,
+.evaluate-action-grid .ant-select-single .ant-select-selector {
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 6px 12px !important;
+}
+
+.evaluate-action-grid .ant-select-selection-placeholder,
+.evaluate-action-grid .ant-input::placeholder,
+.evaluate-action-grid .ant-input-number-input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.evaluate-action-grid .ant-input-outlined:hover,
+.evaluate-action-grid .ant-input-number:hover,
+.evaluate-action-grid
+  .ant-select-outlined:not(.ant-select-customize-input):hover
+  .ant-select-selector {
+  border-color: rgba(113, 112, 255, 0.32);
+}
+
+.evaluate-action-grid .ant-input-outlined:focus,
+.evaluate-action-grid .ant-input-number-focused,
+.evaluate-action-grid
+  .ant-select-focused.ant-select-outlined:not(.ant-select-customize-input)
+  .ant-select-selector {
+  border-color: rgba(113, 112, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(113, 112, 255, 0.12);
+}
+
+.evaluate-check-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.evaluate-check-grid .ant-checkbox-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--foreground-soft);
+}
+
+.evaluate-task-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.evaluate-task-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.evaluate-task-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.evaluate-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.evaluate-preview-empty {
+  min-height: 120px;
+}
+
+.evaluate-run-descriptions .ant-descriptions-view {
+  overflow: hidden;
+}
+
+.evaluate-run-descriptions .ant-descriptions-item-label,
+.evaluate-run-descriptions .ant-descriptions-item-content {
+  border-color: var(--border-subtle) !important;
+}
+
+.evaluate-run-descriptions .ant-descriptions-item-label {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--subtle-foreground);
+}
+
+.evaluate-run-descriptions .ant-descriptions-item-content {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--foreground-soft);
+}
+
+.evaluate-config-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.evaluate-detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.evaluate-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evaluate-detail-section h4 {
+  font-size: 15px;
+  font-weight: 510;
+}
+
+.evaluate-detail-section p {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--foreground-soft);
+}
+
+.evaluate-context-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 18px;
+  margin: 0;
+  color: var(--foreground-soft);
+}
+
+.evaluate-context-list li {
+  line-height: 1.7;
+}
+
+@media (max-width: 960px) {
+  .evaluate-action-grid,
+  .evaluate-content-grid,
+  .evaluate-metric-grid,
+  .evaluate-inline-fields {
+    grid-template-columns: 1fr;
+  }
+}

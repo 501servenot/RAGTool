@@ -1,0 +1,318 @@
+.config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.config-page-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.config-bottom-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.config-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.config-field--full {
+  width: 100%;
+}
+
+.config-field__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.config-field__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--foreground);
+  padding: 0 14px;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.config-input:focus {
+  border-color: rgba(113, 112, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(113, 112, 255, 0.12);
+}
+
+.config-page-main .config-model-control,
+.config-page-main .config-ant-control {
+  width: 100%;
+}
+
+.config-page-main .ant-input-outlined,
+.config-page-main .ant-input-affix-wrapper,
+.config-page-main .ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector {
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+  color: var(--foreground);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+  min-height: 44px;
+}
+
+.config-page-main .ant-input-outlined,
+.config-page-main .ant-input-affix-wrapper {
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+.config-page-main .ant-input-affix-wrapper .ant-input {
+  padding: 0;
+  background: transparent;
+}
+
+.config-page-main .ant-input::placeholder,
+.config-page-main .ant-select .ant-select-selection-placeholder {
+  color: var(--muted-foreground);
+}
+
+.config-page-main .ant-input-password-icon {
+  color: var(--muted-foreground);
+}
+
+.config-page-main .ant-input-password-icon:hover {
+  color: var(--foreground-soft);
+}
+
+.config-page-main .ant-select-single {
+  height: 44px;
+}
+
+.config-page-main
+  .ant-select-outlined:not(.ant-select-customize-input)
+  .ant-select-selector {
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+.config-page-main .ant-select .ant-select-selection-wrap {
+  align-self: stretch;
+}
+
+.config-page-main .ant-select .ant-select-selection-search,
+.config-page-main .ant-select .ant-select-selection-item,
+.config-page-main .ant-select .ant-select-selection-placeholder {
+  display: flex;
+  align-items: center;
+}
+
+.config-page-main .ant-input-outlined:hover,
+.config-page-main .ant-input-affix-wrapper:hover,
+.config-page-main
+  .ant-select-outlined:not(.ant-select-customize-input):hover
+  .ant-select-selector {
+  border-color: rgba(113, 112, 255, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.config-page-main .ant-input-outlined:focus,
+.config-page-main .ant-input-affix-wrapper-focused,
+.config-page-main
+  .ant-select-focused.ant-select-outlined:not(.ant-select-customize-input)
+  .ant-select-selector {
+  border-color: rgba(113, 112, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(113, 112, 255, 0.12);
+}
+
+.config-page-main .ant-select-dropdown {
+  padding: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: #111214;
+  box-shadow: var(--shadow-dialog);
+}
+
+.config-page-main .ant-select-item {
+  min-height: 40px;
+  border-radius: 10px;
+  color: var(--foreground);
+}
+
+.config-page-main .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.config-page-main .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background: rgba(113, 112, 255, 0.16);
+  color: var(--foreground);
+}
+
+.config-page-main .ant-input-textarea textarea {
+  min-height: 120px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.config-checkbox-antd.ant-checkbox-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--foreground-soft);
+}
+
+.config-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--foreground-soft);
+}
+
+.config-checkbox input {
+  accent-color: var(--accent-solid);
+}
+
+.config-field__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.config-group + .config-group {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.config-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.config-group__header h3 {
+  font-size: 18px;
+  font-weight: 510;
+}
+
+.config-group__header span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.config-advanced-panel {
+  overflow: hidden;
+}
+
+.config-advanced-toggle.ant-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  height: auto;
+  min-height: 88px;
+  padding: 24px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.config-advanced-toggle.ant-btn:hover,
+.config-advanced-toggle.ant-btn:focus-visible {
+  background: transparent !important;
+  color: inherit !important;
+  border-color: transparent !important;
+}
+
+.config-advanced-toggle.ant-btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(113, 112, 255, 0.12) !important;
+}
+
+.config-advanced-toggle__copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.config-advanced-toggle__title {
+  font-size: 20px;
+  font-weight: 510;
+  color: var(--foreground);
+}
+
+.config-advanced-toggle__description {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.config-advanced-toggle__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--foreground-soft);
+  will-change: transform;
+}
+
+.config-advanced-body {
+  will-change: height, opacity;
+}

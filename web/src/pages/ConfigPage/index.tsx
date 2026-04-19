@@ -11,6 +11,7 @@ import type {
   ProviderKind,
 } from '../../api/config'
 import { useConfigNavigationGuard } from '../../contexts/ConfigNavigationGuard'
+import './index.css'
 
 type DraftValue = string | boolean
 type DraftState = Record<string, DraftValue>

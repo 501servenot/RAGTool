@@ -82,7 +82,7 @@ export default function SampleResultsTable({ results, loading }: SampleResultsTa
         </div>
       ) : (
         <Table
-          className="page-knowledge-table"
+          className="page-knowledge-table evaluate-table-flat"
           columns={columns}
           dataSource={results}
           loading={loading}

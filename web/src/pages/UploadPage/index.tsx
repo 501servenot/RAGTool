@@ -5,6 +5,7 @@ import type { UploadFile, UploadProps } from 'antd'
 import { getKnowledgeDocuments } from '../../api/knowledge'
 import { uploadFile } from '../../api/upload'
 import type { UploadResponse } from '../../api/upload'
+import './index.css'
 
 interface UploadRecord extends UploadResponse {
   id: string

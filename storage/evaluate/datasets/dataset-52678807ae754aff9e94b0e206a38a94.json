@@ -1,0 +1,17 @@
+{
+  "dataset_id": "dataset-52678807ae754aff9e94b0e206a38a94",
+  "name": "知识库评估集",
+  "source_document_ids": [
+    "e2cdf066297d2e002e06792d1264af30",
+    "c407e9534360f1f22fa03aacbb1be278",
+    "bacf55112a75b2a9473b69193d847ff4"
+  ],
+  "generator_model": "deepseek-chat",
+  "status": "failed",
+  "created_at": "2026-04-19T12:12:33.366526",
+  "updated_at": "2026-04-19T12:12:46.914457",
+  "sample_count": 0,
+  "version": 1,
+  "samples": [],
+  "error": "结构化输出结果格式不受支持"
+}
