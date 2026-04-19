@@ -11,7 +11,20 @@
 
 ## 项目界面预览
 
-![RAG Console 界面预览](docs/images/rag-console-preview.png)
+![RAG Console 界面预览](docs/images/playground.png)
+
+### Playground
+
+![Playground 预览](docs/images/playground.png)
+
+### Settings
+
+![Settings 预览](docs/images/setting.png)
+
+### Upload
+
+![Upload 预览](docs/images/upload.png)
+
 
 ## RAG 架构概览
 
