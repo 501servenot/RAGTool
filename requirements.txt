@@ -11,3 +11,5 @@ langchain-openai
 langchain-chroma
 langchain-text-splitters
 dashscope
+ragas
+datasets

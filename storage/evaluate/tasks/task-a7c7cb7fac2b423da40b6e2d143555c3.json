@@ -1,0 +1,14 @@
+{
+  "task_id": "task-a7c7cb7fac2b423da40b6e2d143555c3",
+  "task_type": "generate_dataset",
+  "status": "completed",
+  "progress": 1.0,
+  "message": "已完成",
+  "resource_id": "dataset-a81a2b75f6714d9dbdfdb49973c7a62f",
+  "result_ref": {
+    "dataset_id": "dataset-a81a2b75f6714d9dbdfdb49973c7a62f"
+  },
+  "created_at": "2026-04-19T10:40:00.520229",
+  "updated_at": "2026-04-19T10:41:04.804787",
+  "error": null
+}

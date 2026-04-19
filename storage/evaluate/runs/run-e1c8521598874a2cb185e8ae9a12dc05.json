@@ -1,0 +1,17 @@
+{
+  "run_id": "run-e1c8521598874a2cb185e8ae9a12dc05",
+  "dataset_id": "dataset-a81a2b75f6714d9dbdfdb49973c7a62f",
+  "dataset_version": 1,
+  "status": "failed",
+  "created_at": "2026-04-19T10:41:17.936183",
+  "updated_at": "2026-04-19T10:42:37.369491",
+  "completed_at": "2026-04-19T10:42:37.369501",
+  "config_snapshot": {
+    "rerank_enabled": true,
+    "rewrite_enabled": true
+  },
+  "metrics_summary": {},
+  "sample_count": 5,
+  "successful_sample_count": 0,
+  "error": "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+}

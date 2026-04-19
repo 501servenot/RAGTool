@@ -1,5 +1,5 @@
 import type { MouseEvent } from 'react'
-import { Database, FileUp, MessageSquare, Settings, Sparkles } from 'lucide-react'
+import { BarChart3, Database, FileUp, MessageSquare, Settings, Sparkles } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import type { NavLinkRenderProps } from 'react-router-dom'
@@ -22,6 +22,11 @@ const navItems = [
     to: '/knowledge',
     label: 'KnowledgeBase',
     icon: Database,
+  },
+  {
+    to: '/evaluate',
+    label: 'Evaluate',
+    icon: BarChart3,
   },
   {
     to: '/config',

@@ -5,6 +5,7 @@ import { appAntdTheme } from './lib/antdTheme'
 import AppShell from './layouts/AppShell'
 import ChatPage from './pages/ChatPage'
 import ConfigPage from './pages/ConfigPage'
+import EvaluatePage from './pages/EvaluatePage'
 import KnowledgePage from './pages/KnowledgePage'
 import UploadPage from './pages/UploadPage'
 import './App.css'
@@ -20,6 +21,7 @@ function App() {
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/knowledge" element={<KnowledgePage />} />
+              <Route path="/evaluate" element={<EvaluatePage />} />
               <Route path="/config" element={<ConfigPage />} />
             </Route>
           </Routes>

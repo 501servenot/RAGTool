@@ -1,0 +1,115 @@
+{
+  "dataset_id": "dataset-a81a2b75f6714d9dbdfdb49973c7a62f",
+  "name": "知识库评估集",
+  "source_document_ids": [
+    "bacf55112a75b2a9473b69193d847ff4"
+  ],
+  "generator_model": "deepseek-chat",
+  "status": "completed",
+  "created_at": "2026-04-19T10:41:04.802137",
+  "updated_at": "2026-04-19T10:41:04.802137",
+  "sample_count": 5,
+  "version": 1,
+  "samples": [
+    {
+      "sample_id": "sample-eb21f43e328b4fb9b4e39b1109e994c3",
+      "question": "肖特基势垒二极管在微波电路中主要体现什么特性？它通常用于构成哪些微波器件？",
+      "reference_answer": "肖特基势垒二极管对外主要体现出非线性电阻特性。它是构成微波阻性混频器、检波器、低噪声参量放大器、限幅器和微波开关等微波器件的核心元件。",
+      "reference_contexts": [
+        "肖特基势垒二极管是利用金属与半导体接触形成肖特基势垒而构成的一种微波二极管，它对外主要体现出非线性电阻特性，是构成微波阻性混频器、检波器、低噪声参量放大器、限幅器和微波开关等的核心元件。"
+      ],
+      "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+      "source_chunk_ids": [
+        "bacf55112a75b2a9473b69193d847ff4#0"
+      ],
+      "metadata": {
+        "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+        "source_file_name": "微波电子电路-2026-2 - 微波二极管(1).pdf",
+        "extracted_content_preview": "第12次课，23、24课时\n肖特基势垒二极管是利用金属与半导体接触形成肖特基势垒而构成的\n一种微波二极管，它对外主要体现出非线性电阻特性，是构成微波阻性混\n频器、检波器、低噪声参量放大器、限幅器和微波开关等的核心元件。",
+        "question_type": "事实信息提取",
+        "relevant_passages": [
+          "片段开头部分"
+        ]
+      }
+    },
+    {
+      "sample_id": "sample-b8ce49eff15d4de38e053cd0b3bad571",
+      "question": "变容二极管根据用途不同可以分为哪些类型？",
+      "reference_answer": "根据用途不同，变容二极管主要分为参放变容管、倍频变容管、功率变容管和调谐变容管等类型。",
+      "reference_contexts": [
+        "根据用途不同，变容二极管分为参放变容管、倍频变容管、功率变容管和调谐变容管等类型。"
+      ],
+      "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+      "source_chunk_ids": [
+        "bacf55112a75b2a9473b69193d847ff4#1"
+      ],
+      "metadata": {
+        "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+        "source_file_name": "微波电子电路-2026-2 - 微波二极管(1).pdf",
+        "extraction_method": "manual",
+        "topic": "变容二极管的类型"
+      }
+    },
+    {
+      "sample_id": "sample-3cf5e6468fc7485888b086466bd3c6d3",
+      "question": "超突变结的电容表达式是什么？并解释在LC电路应用中，为了实现共振频率fr与反偏电压VR呈线性关系，超突变结的m值应满足什么条件？",
+      "reference_answer": "超突变结的电容表达式为：C = B * ε_s / [(V_bi + V_R)^(1/(m+2))]，其中B为常数，ε_s为半导体介电常数，V_bi为内建电势，V_R为反偏电压，m为掺杂浓度分布指数。在LC电路应用中，共振频率fr = 1/(2π√(LC))。为了实现fr与VR呈线性关系，要求电容C与VR的平方成反比（C ∝ V_R^{-2}）。结合电容表达式，可推导出需要满足条件：1/(m+2) = 2，即m = -3/2。因此，当m = -3/2时，fr与VR呈线性关系。",
+      "reference_contexts": [
+        "超突变结的电容表达式\n)2/(1)1(\n))(2('\n\n\n\n\n\n\n\n\nm\nRbi\nm\ns\nVVm\neBC ",
+        "LC电路的共振频率：\nLC\nfr\n2\n1",
+        "电路应用中要求fr是反偏电压的线性函数，则：\n2 VC 22\n1 m 2\n3m"
+      ],
+      "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+      "source_chunk_ids": [
+        "bacf55112a75b2a9473b69193d847ff4#2"
+      ],
+      "metadata": {
+        "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+        "source_file_name": "微波电子电路-2026-2 - 微波二极管(1).pdf",
+        "source_page": "第13次课，25、26课时",
+        "topic": "超突变结与变容二极管",
+        "difficulty": "中等",
+        "question_type": "公式推导与应用条件"
+      }
+    },
+    {
+      "sample_id": "sample-e65f37676e84441fa51f37e3d87392d9",
+      "question": "在微波二极管中，当微波信号频率为1000MHz时，如果I层仍然储存有大量注入电荷并处于等离子体状态，此时PIN管呈现什么状态？为什么？",
+      "reference_answer": "此时PIN管仍然呈现导通状态（低阻状态）。原因在于，虽然微波信号的正半周注入电荷Q1为2.5×10^-9 C，反向电场抽取的电荷Q2为2.5×10^-7 C，且Q2远大于Q1（Q2≈100Q1），但由于微波电流I1远大于直流电流I0（I1 >> I0），I层中仍然储存有大量的注入电荷，保持等离子体状态，因此呈现低阻，PIN管保持导通。",
+      "reference_contexts": [
+        "微波电流 A 501 I\n这时大幅度的微波电流也将向I层注入电荷。设微波信号频率为\n对应周期为        ，则微波正半周注入的电荷Q1可计算为：\nMHz 1000f\ns 10 9wT\nC 1025.0102\n1502\n79\n11\n  TIQ\n反向电场抽取的电荷数目为\nwT\nC 1025.0 7\n12\n QQ\n由于     ，虽然       ，仍然有          。因此I层仍\n然储存有大量的注入电荷，仍然处于等离子体状态，必然呈\n现低阻，所以PIN管仍然是导通的。\n01 II  20/ 20 QQ"
+      ],
+      "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+      "source_chunk_ids": [
+        "bacf55112a75b2a9473b69193d847ff4#3"
+      ],
+      "metadata": {
+        "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+        "source_filename": "微波电子电路-2026-2 - 微波二极管(1).pdf",
+        "question_type": "状态与原因分析",
+        "topic": "微波二极管中PIN管的状态与电荷储存关系"
+      }
+    },
+    {
+      "sample_id": "sample-3a41aee20dfa46f281e0e30c1bc6047c",
+      "question": "阶跃管和混频、检波或高速开关二极管在少数载流子寿命要求上有何不同？为什么阶跃管需要较长的少数载流子寿命？",
+      "reference_answer": "阶跃管要求少数载流子寿命远大于输入信号周期（τ >> Tin），通常需大于信号周期的3倍左右；而混频、检波或高速开关二极管则要求少数载流子寿命远小于信号周期（τ << Tin）。阶跃管需要较长寿命的原因是：当电压从正向转为反向时，正向注入的储存电荷未及时复合，剩余电荷被势垒区电场“吸出”，形成较大的反向电流，直到电荷基本耗尽电流才陡降，这使得管子在高频整流作用失效，但能产生包含丰富高次谐波的电流阶跃，适用于谐波生成。",
+      "reference_contexts": [
+        "P+ N+N\nIr\nN层内少数载流子寿命长，而N层外寿命短\nP+ N+N\n少数载流子寿命长\n实际要求阶跃管少数载流子寿命大于\n输入信号周期的3倍左右。\ntt越小，电流阶跃越陡，包含的高\n次谐波越丰富。",
+        "混频、检波或高速开关二极管，必须具备整流特性，一般\n注入少子的寿命τ要远小于信号周期Tin。但对于阶跃管来说，\n需采取措施增大阶跃管的少子寿命，使得τ>>Tin，这时少子的\n复合速度跟不上交流电压的变化，当电压从正向转为反向时，\n正向注入的储存电荷远未复合完，由势垒区的电场把剩余的储\n存少子“吸出”，由此形成较大的反向电流，直到储存电荷基\n本耗尽，反向电流才陡降为反向饱和电流。\n阶跃管在交流负半周的相当一段时间内，仍然处于“导通”\n状态，使其高频整流作用失效。管子“导通”与“截止”两种\n状态的转换时刻不再是外加电压从正变负的时刻，而是在管子\n储存电荷基本清除完的时刻。"
+      ],
+      "source_document_id": "bacf55112a75b2a9473b69193d847ff4",
+      "source_chunk_ids": [
+        "bacf55112a75b2a9473b69193d847ff4#4"
+      ],
+      "metadata": {
+        "source_file": "微波电子电路-2026-2 - 微波二极管(1).pdf",
+        "document_id": "bacf55112a75b2a9473b69193d847ff4",
+        "page_or_section": "第14次课，27、28课时",
+        "topic": "微波二极管特性",
+        "subtopic": "阶跃管与整流二极管的少数载流子寿命对比"
+      }
+    }
+  ],
+  "error": null
+}

@@ -25,6 +25,15 @@ class Settings(BaseSettings):
 
     dashscope_api_key: str = ""
     model_registry_path: str = "config/models.json"
+    evaluation_storage_directory: str = "storage/evaluate"
+    evaluation_dataset_model_name: str = ""
+    evaluation_concurrency: int = 3
+    evaluation_default_metrics: list[str] = [
+        "faithfulness",
+        "answer_relevancy",
+        "context_precision",
+        "context_recall",
+    ]
 
     md5_file_path: str = "storage/md5/md5.txt"
     chat_history_directory: str = "storage/chat_history"
@@ -134,6 +143,36 @@ CONFIG_FIELD_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "nullable": False,
     },
     {
+        "key": "evaluation_dataset_model_name",
+        "label": "评估集生成模型",
+        "description": "离线生成评估问答样本时使用的模型，为空时复用对话模型。",
+        "group": "评估",
+        "input_type": "text",
+        "advanced": False,
+        "sensitive": False,
+        "nullable": False,
+    },
+    {
+        "key": "evaluation_concurrency",
+        "label": "评估并发数",
+        "description": "离线评估时允许同时处理的样本数量。",
+        "group": "评估",
+        "input_type": "number",
+        "advanced": True,
+        "sensitive": False,
+        "nullable": False,
+    },
+    {
+        "key": "evaluation_default_metrics",
+        "label": "默认评估指标",
+        "description": "默认启用的 ragas 指标列表，使用 JSON 数组编辑。",
+        "group": "评估",
+        "input_type": "json-textarea",
+        "advanced": True,
+        "sensitive": False,
+        "nullable": False,
+    },
+    {
         "key": "md5_file_path",
         "label": "MD5 文件路径",
         "description": "去重摘要文件的保存路径。",
@@ -167,6 +206,16 @@ CONFIG_FIELD_DEFINITIONS: tuple[dict[str, Any], ...] = (
         "key": "persist_directory",
         "label": "向量库存储目录",
         "description": "Chroma 持久化目录。",
+        "group": "存储路径",
+        "input_type": "text",
+        "advanced": True,
+        "sensitive": False,
+        "nullable": False,
+    },
+    {
+        "key": "evaluation_storage_directory",
+        "label": "评估存储目录",
+        "description": "评估数据集、任务和运行结果的保存目录。",
         "group": "存储路径",
         "input_type": "text",
         "advanced": True,
@@ -567,6 +616,7 @@ def get_settings() -> Settings:
         "md5_file_path",
         "chat_history_directory",
         "persist_directory",
+        "evaluation_storage_directory",
         "model_registry_path",
     ):
         field_value = Path(getattr(settings, path_field))

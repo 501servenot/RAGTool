@@ -1,0 +1,12 @@
+{
+  "task_id": "task-037b33209f914cd2b98863a3b79f86d5",
+  "task_type": "run_evaluation",
+  "status": "failed",
+  "progress": 0.85,
+  "message": "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable",
+  "resource_id": "run-e1c8521598874a2cb185e8ae9a12dc05",
+  "result_ref": null,
+  "created_at": "2026-04-19T10:41:17.937704",
+  "updated_at": "2026-04-19T10:42:37.370974",
+  "error": "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+}

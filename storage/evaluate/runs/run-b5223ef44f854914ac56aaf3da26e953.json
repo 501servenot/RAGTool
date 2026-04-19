@@ -1,0 +1,23 @@
+{
+  "run_id": "run-b5223ef44f854914ac56aaf3da26e953",
+  "dataset_id": "dataset-a81a2b75f6714d9dbdfdb49973c7a62f",
+  "dataset_version": 1,
+  "status": "completed",
+  "created_at": "2026-04-19T11:54:15.641283",
+  "updated_at": "2026-04-19T11:57:05.147634",
+  "completed_at": "2026-04-19T11:57:05.147645",
+  "config_snapshot": {
+    "rerank_enabled": true,
+    "rewrite_enabled": true
+  },
+  "metrics_summary": {
+    "faithfulness": 1.0,
+    "answer_relevancy": 0.5078,
+    "context_precision": 1.0,
+    "context_recall": 1.0,
+    "success_rate": 1.0
+  },
+  "sample_count": 5,
+  "successful_sample_count": 5,
+  "error": null
+}

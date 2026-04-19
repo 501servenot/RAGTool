@@ -1,0 +1,14 @@
+{
+  "task_id": "task-73c65010383644d39868706e1ce13500",
+  "task_type": "run_evaluation",
+  "status": "completed",
+  "progress": 1.0,
+  "message": "已完成",
+  "resource_id": "run-b5223ef44f854914ac56aaf3da26e953",
+  "result_ref": {
+    "run_id": "run-b5223ef44f854914ac56aaf3da26e953"
+  },
+  "created_at": "2026-04-19T11:54:15.642956",
+  "updated_at": "2026-04-19T11:57:05.151457",
+  "error": null
+}
