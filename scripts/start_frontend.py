@@ -13,7 +13,8 @@ def main() -> None:
         env["VITE_API_PROXY_TARGET"] = "http://localhost:8000"
 
     manager = frontend_package_manager()
-    command = manager + ["run", "dev", "--", "--host", host, "--port", port]
+    separator = ["--"] if manager[0] == "npm" else []
+    command = manager + ["run", "dev"] + separator + ["--host", host, "--port", port]
     subprocess.run(command, cwd=WEB_DIR, check=True, env=env)
 
 
