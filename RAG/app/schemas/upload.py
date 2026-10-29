@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class UploadResponse(BaseModel):
@@ -6,3 +7,12 @@ class UploadResponse(BaseModel):
     size_kb: float = Field(..., description="文件大小（KB）")
     content_type: str = Field(..., description="文件 MIME 类型")
     message: str = Field(..., description="处理结果：成功 / 内容已存在")
+    parser: Literal["pypdf", "docling", "text"] = "pypdf"
+
+
+class ParsePreviewResponse(BaseModel):
+    filename: str
+    parser: Literal["pypdf", "docling", "text"]
+    format: Literal["text", "markdown"]
+    text: str
+    characters: int

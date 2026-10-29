@@ -1,5 +1,7 @@
 # RAGTool
 
+本轮 PDF 解析、公式增强和验证结果，见 [解析改动说明](docs/README-parser-changes.md)。
+
 > 一个带 Web 控制台的 RAG 示例项目，覆盖知识库入库、检索问答、配置管理，以及基于 `ragas` 的离线评估能力。
 
 ## 项目简介
@@ -31,6 +33,21 @@
 - **Evaluate**：生成评估数据集，发起 `ragas` 评估任务，查看 Faithfulness、回答相关性、召回准确率、上下文召回率等关键指标
 
 ## 界面预览
+
+### PDF 解析器与解析预览
+
+上传页可选择 **pypdf（默认）** 或 **Docling**。点击“预览解析结果”可查看完整解析文本和字符数，不会向量化或写入知识库；“上传到知识库”使用相同解析入口。最近四份 PDF 结果缓存在内存中，预览后上传通常无需重新解析；重启或缓存淘汰后会重新解析。TXT / Markdown 仍直接读取 UTF-8 文本。
+
+Docling 是可选依赖，不影响原 pypdf 路径。可在后端环境执行 `python -m pip install -r requirements-docling.txt`，也可以安装到单独环境，在项目 `.env` 中配置该环境的 Python 绝对路径：
+
+```dotenv
+DOCLING_PYTHON=C:/path/to/docling-env/Scripts/python.exe
+DOCLING_MODEL_CACHE=C:/path/to/huggingface-cache
+```
+
+留空时使用后端 Python 和默认模型缓存。首次使用需联网下载模型；之后本地运行，无需另启 AI 服务。修改环境配置后重启后端。当前启用默认版面、OCR、表格识别和公式增强，关闭代码和图片描述增强。识别成功的公式以 LaTeX 输出；增强未产生文字时，保留可用的原始文字并标注“未恢复数学排版”，完全没有文字的公式会提示查看原文。公式增强会增加解析耗时，生成的上下标、分式、矩阵仍需核对。预览展示入库用的原始文本/Markdown（含 LaTeX 源码），不渲染公式或图片；原分块和知识库逻辑保持不变。
+
+接口：`POST /api/v1/upload/preview` 和 `POST /api/v1/upload` 均接收 multipart `file`、`parser`（`pypdf` / `docling`，默认 `pypdf`）。
 
 ### Playground
 

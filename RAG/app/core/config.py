@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     )
 
     dashscope_api_key: str = ""
+    docling_python: str = ""
+    docling_model_cache: str = ""
     model_registry_path: str = "config/models.json"
     evaluation_storage_directory: str = "storage/evaluate"
     evaluation_dataset_model_name: str = ""

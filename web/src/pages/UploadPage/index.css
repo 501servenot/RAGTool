@@ -5,6 +5,22 @@
   min-height: 0;
 }
 
+.parser-field {
+  display: grid;
+  gap: 8px;
+}
+
+.parse-preview-text {
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font: 13px/1.7 Consolas, monospace;
+}
+
 .page-upload-dragger.ant-upload-wrapper .ant-upload-drag {
   border: 1px dashed var(--border);
   border-radius: 16px;

@@ -35,3 +35,14 @@ web/dist/
 web/.vite/
 web/*.local
 
+# Local paper experiments, optional model runtime/cache, and generated exports
+/paper/
+/papers/
+/tmp/
+/output/
+/.venv-docling/
+/.cache/
+
+# Local evaluation history (already tracked fixtures remain tracked)
+/storage/evaluate/
+
