@@ -1,0 +1,2 @@
+# Optional; can be installed in a separate environment via DOCLING_PYTHON.
+docling[vlm]==2.145.0
